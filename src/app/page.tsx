@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import {SiteHeader} from "@/app/components/SiteHeader";
 import {client} from "@/sanity/lib/client";
 import {urlFor} from "@/sanity/lib/image";
 
@@ -136,47 +137,11 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-[#c7391f] text-[#240B36]">
+      <SiteHeader />
       <section className="relative isolate overflow-hidden border-b-4 border-[#240B36] bg-[#e55224]">
         <div className="absolute inset-0 -z-10 opacity-25 bg-[linear-gradient(90deg,#240B36_1px,transparent_1px),linear-gradient(#240B36_1px,transparent_1px)] bg-[size:42px_42px]" />
         <div className="mx-auto flex min-h-[88vh] max-w-7xl px-5 pb-20 pt-6 sm:px-8 sm:pb-28 lg:pb-32 lg:pt-10">
           <div className="flex w-full flex-col gap-6">
-            <nav
-              aria-label="Main navigation"
-              className="flex flex-wrap items-center justify-between gap-6 border-b-2 border-[#240B36] pb-4 text-sm font-medium lowercase"
-            >
-              <Link href="/" aria-label="Born to Feast home">
-                <Image
-                  src="/born-to-feast-logo.svg"
-                  alt="Born to Feast"
-                  width={121}
-                  height={47}
-                  priority
-                  className="h-auto w-[8.65rem] sm:w-[10.1rem]"
-                />
-              </Link>
-              <div className="flex flex-wrap items-center gap-8">
-                <a href="#recipes">recipes</a>
-                <a href="#categories">ingredients</a>
-                <Link href="/about">about</Link>
-                <Link href="/search" aria-label="search">
-                  <svg
-                    aria-hidden="true"
-                    className="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="m21 21-4.35-4.35m1.1-5.15a6.25 6.25 0 1 1-12.5 0 6.25 6.25 0 0 1 12.5 0Z"
-                    />
-                  </svg>
-                </Link>
-              </div>
-            </nav>
-
             <div
               className={
                 heroPortrait

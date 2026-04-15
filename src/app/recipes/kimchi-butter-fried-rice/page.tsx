@@ -1,8 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
 import {PortableText} from "next-sanity";
 import {notFound} from "next/navigation";
 
+import {SiteHeader} from "@/app/components/SiteHeader";
 import {client} from "@/sanity/lib/client";
 import {urlFor} from "@/sanity/lib/image";
 
@@ -114,42 +114,9 @@ export default async function RecipePage() {
 
   return (
     <main className="min-h-screen bg-[#fff3c7] text-[#240B36]">
-      <section className="border-b-4 border-[#240B36] bg-[#e55224] px-5 py-6 sm:px-8">
+      <SiteHeader />
+      <section className="border-b-4 border-[#240B36] bg-[#e55224] px-5 py-12 sm:px-8 lg:py-20">
         <div className="mx-auto max-w-7xl">
-          <nav className="mb-8 flex flex-wrap items-center justify-between gap-6 border-b-2 border-[#240B36] pb-4 text-sm font-medium lowercase">
-            <Link href="/" aria-label="Born to Feast home">
-              <Image
-                src="/born-to-feast-logo.svg"
-                alt="Born to Feast"
-                width={121}
-                height={47}
-                priority
-                className="h-auto w-[8.65rem] sm:w-[10.1rem]"
-              />
-            </Link>
-            <div className="flex flex-wrap items-center gap-8">
-              <Link href="/#recipes">recipes</Link>
-              <Link href="/#categories">ingredients</Link>
-              <Link href="/about">about</Link>
-              <Link href="/search" aria-label="search">
-                <svg
-                  aria-hidden="true"
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="m21 21-4.35-4.35m1.1-5.15a6.25 6.25 0 1 1-12.5 0 6.25 6.25 0 0 1 12.5 0Z"
-                  />
-                </svg>
-              </Link>
-            </div>
-          </nav>
-
           <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
             <div>
               <p className="mb-4 inline-flex border-2 border-[#240B36] bg-[#ffd447] px-3 py-2 text-sm font-medium uppercase leading-[0.9]">
