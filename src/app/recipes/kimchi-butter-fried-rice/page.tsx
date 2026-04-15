@@ -117,7 +117,16 @@ export default async function RecipePage() {
       <section className="border-b-4 border-[#240B36] bg-[#e55224] px-5 py-6 sm:px-8">
         <div className="mx-auto max-w-7xl">
           <nav className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b-2 border-[#240B36] pb-4 text-sm font-black uppercase">
-            <Link href="/">Born to Feast</Link>
+            <Link href="/" aria-label="Born to Feast home">
+              <Image
+                src="/born-to-feast-logo.svg"
+                alt="Born to Feast"
+                width={121}
+                height={47}
+                priority
+                className="h-auto w-24 sm:w-28"
+              />
+            </Link>
             <div className="flex flex-wrap gap-3">
               <Link href="/#recipes">Recipes</Link>
               <Link href="/#categories">Cuisines</Link>

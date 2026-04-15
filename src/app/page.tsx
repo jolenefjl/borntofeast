@@ -80,8 +80,15 @@ export default function Home() {
               aria-label="Main navigation"
               className="flex flex-wrap items-center justify-between gap-4 border-b-2 border-[#240B36] pb-4 text-sm font-black uppercase"
             >
-              <Link href="/" className="text-xl">
-                Born to Feast
+              <Link href="/" aria-label="Born to Feast home">
+                <Image
+                  src="/born-to-feast-logo.svg"
+                  alt="Born to Feast"
+                  width={121}
+                  height={47}
+                  priority
+                  className="h-auto w-24 sm:w-28"
+                />
               </Link>
               <div className="flex flex-wrap gap-3">
                 <a href="#recipes">Recipes</a>
