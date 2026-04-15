@@ -15,6 +15,7 @@ const featuredRecipes = [
   },
   {
     title: "Kimchi Butter Fried Rice",
+    href: "/recipes/kimchi-butter-fried-rice",
     cuisine: "Korean",
     difficulty: "Easy",
     time: "18 min",
@@ -186,7 +187,11 @@ export default function Home() {
                     </span>
                   </div>
                   <h3 className="text-3xl font-black leading-8">
-                    {recipe.title}
+                    {recipe.href ? (
+                      <Link href={recipe.href}>{recipe.title}</Link>
+                    ) : (
+                      recipe.title
+                    )}
                   </h3>
                   <p className="mt-4 text-base font-semibold leading-7">
                     {recipe.description}
