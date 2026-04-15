@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 const featuredRecipes = [
   {
     title: "Charred Spring Onion Oil Noodles",
+    href: "/search?tag=noodles",
     cuisine: "Chinese Fusion",
     difficulty: "Easy",
     time: "20 min",
@@ -32,6 +33,7 @@ const featuredRecipes = [
   },
   {
     title: "Malaysian Chicken Curry Puffs",
+    href: "/search?tag=malaysian",
     cuisine: "Malaysian",
     difficulty: "Deep Dive",
     time: "90 min",
@@ -46,6 +48,7 @@ const featuredRecipes = [
 const categories = [
   {
     name: "Malaysian",
+    href: "/search?category=malaysian",
     copy: "Curry laksa moods, sambal cravings, kopitiam breakfasts, and food that travels well.",
     image:
       "https://images.unsplash.com/photo-1625398407796-82650a8c135f?auto=format&fit=crop&w=800&q=85",
@@ -53,6 +56,7 @@ const categories = [
   },
   {
     name: "Korean",
+    href: "/search?category=korean",
     copy: "Big comfort, bold ferments, weeknight rice, noodles, stews, and crispy things.",
     image:
       "https://images.unsplash.com/photo-1583224964978-2257b960c3d3?auto=format&fit=crop&w=800&q=85",
@@ -60,6 +64,7 @@ const categories = [
   },
   {
     name: "Chinese",
+    href: "/search?category=chinese",
     copy: "Saucy stir-fries, dumpling days, noodle bowls, and simple home-style favorites.",
     image:
       "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?auto=format&fit=crop&w=800&q=85",
@@ -67,6 +72,7 @@ const categories = [
   },
   {
     name: "Fusion",
+    href: "/search?category=fusion",
     copy: "Asian comfort food using what you can actually find in a Norwegian grocery store.",
     image:
       "https://images.unsplash.com/photo-1559314809-0d155014e29e?auto=format&fit=crop&w=800&q=85",
@@ -145,7 +151,7 @@ export default async function Home() {
                   width={121}
                   height={47}
                   priority
-                  className="h-auto w-[7.2rem] sm:w-[8.4rem]"
+                  className="h-auto w-[8.65rem] sm:w-[10.1rem]"
                 />
               </Link>
               <div className="flex flex-wrap items-center gap-8">
@@ -192,19 +198,19 @@ export default async function Home() {
               ) : null}
 
               <div>
-                <h1 className="font-serif text-6xl font-bold lowercase leading-none sm:text-7xl lg:text-8xl">
+                <h1 className="font-serif text-6xl font-bold lowercase leading-[0.9] sm:text-7xl lg:text-8xl">
                   {heroLines.map((line, index) => (
                     <span key={`${line}-${index}`} className="block">
                       {line}
                     </span>
                   ))}
                 </h1>
-                <p className="mt-6 max-w-2xl text-xl font-normal leading-8">
+                <p className="mt-6 max-w-2xl text-xl font-normal leading-[1.8rem]">
                   {heroIntro}
                 </p>
                 <a
                   href={heroCtaHref}
-                  className="mt-8 inline-flex border-2 border-[#240B36] bg-[#ffd447] px-6 py-3 text-sm font-black uppercase shadow-[4px_4px_0_#240B36]"
+                  className="mt-8 inline-flex border-2 border-[#240B36] bg-[#ffd447] px-6 py-3 text-sm font-black uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]"
                 >
                   {heroCtaLabel}
                 </a>
@@ -221,16 +227,16 @@ export default async function Home() {
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col justify-between gap-4 border-b-4 border-[#240B36] pb-5 md:flex-row md:items-end">
             <div>
-              <p className="text-sm font-medium lowercase text-[#c7391f]">
+              <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
                 homepage picks
               </p>
-              <h2 className="font-serif text-5xl font-black lowercase leading-none sm:text-6xl">
+              <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
                 cook this week
               </h2>
             </div>
             <a
               href="#newsletter"
-              className="inline-flex w-fit border-2 border-[#240B36] bg-[#ffd447] px-4 py-3 text-sm font-medium lowercase shadow-[4px_4px_0_#240B36]"
+              className="inline-flex w-fit border-2 border-[#240B36] bg-[#ffd447] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]"
             >
               get the feast letter
             </a>
@@ -238,9 +244,10 @@ export default async function Home() {
 
           <div className="grid gap-6 lg:grid-cols-3">
             {featuredRecipes.map((recipe) => (
-              <article
+              <Link
                 key={recipe.title}
-                className="group border-4 border-[#240B36] bg-[#f77f1f] shadow-[8px_8px_0_#240B36] transition duration-200 hover:-translate-y-2 hover:shadow-[12px_12px_0_#240B36]"
+                href={recipe.href}
+                className="group block border-4 border-[#240B36] bg-[#f77f1f] shadow-[8px_8px_0_#240B36] transition duration-200 hover:-translate-y-2 hover:shadow-[12px_12px_0_#240B36]"
               >
                 <div className="relative aspect-[4/3] overflow-hidden border-b-4 border-[#240B36]">
                   <Image
@@ -252,7 +259,7 @@ export default async function Home() {
                   />
                 </div>
                 <div className="p-5">
-                  <div className="mb-4 flex flex-wrap gap-2 text-xs font-medium lowercase">
+                  <div className="mb-4 flex flex-wrap gap-2 text-xs font-medium uppercase leading-[0.9]">
                     <span className="border-2 border-[#240B36] bg-[#fff3c7] px-2 py-1">
                       {recipe.cuisine}
                     </span>
@@ -263,18 +270,14 @@ export default async function Home() {
                       {recipe.time}
                     </span>
                   </div>
-                  <h3 className="text-3xl font-black lowercase leading-8">
-                    {recipe.href ? (
-                      <Link href={recipe.href}>{recipe.title}</Link>
-                    ) : (
-                      recipe.title
-                    )}
+                  <h3 className="text-3xl font-black lowercase leading-[1.8rem]">
+                    {recipe.title}
                   </h3>
-                  <p className="mt-4 text-base font-normal leading-7">
+                  <p className="mt-4 text-base font-normal leading-[1.575rem]">
                     {recipe.description}
                   </p>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </div>
@@ -286,18 +289,19 @@ export default async function Home() {
       >
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 border-b-4 border-[#240B36] pb-5">
-            <p className="text-sm font-medium lowercase text-[#c7391f]">
+            <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
               browse the pantry
             </p>
-            <h2 className="font-serif text-5xl font-black lowercase leading-none sm:text-6xl">
+            <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
               cuisines and cravings
             </h2>
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
             {categories.map((category) => (
-              <article
+              <Link
                 key={category.name}
+                href={category.href}
                 className="group grid border-4 border-[#240B36] bg-[#fff3c7] transition duration-200 hover:-translate-y-2 hover:shadow-[10px_10px_0_#240B36] md:grid-cols-[0.85fr_1fr]"
               >
                 <div className="relative min-h-56 overflow-hidden border-b-4 border-[#240B36] md:border-b-0 md:border-r-4">
@@ -310,14 +314,14 @@ export default async function Home() {
                   />
                 </div>
                 <div className="p-5">
-                  <h3 className="font-serif text-4xl font-black lowercase">
+                  <h3 className="font-serif text-4xl font-black lowercase leading-[0.9]">
                     {category.name}
                   </h3>
-                  <p className="mt-3 text-base font-normal leading-7">
+                  <p className="mt-3 text-base font-normal leading-[1.575rem]">
                     {category.copy}
                   </p>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </div>
@@ -326,14 +330,14 @@ export default async function Home() {
       <section className="bg-[#240B36] px-5 py-20 text-[#fff3c7] sm:px-8 sm:py-28 lg:py-32">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <div>
-            <p className="text-sm font-medium lowercase text-[#ffd447]">
+            <p className="text-sm font-medium uppercase leading-[0.9] text-[#ffd447]">
               about jo
             </p>
-            <h2 className="font-serif text-5xl font-black lowercase leading-none sm:text-6xl">
+            <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
               malaysian roots, norway kitchen.
             </h2>
           </div>
-          <p className="text-xl font-normal leading-9">
+          <p className="text-xl font-normal leading-[2.025rem]">
             Born to Feast is for the homesick, the curious, the hungry, and the
             people standing in a Norwegian supermarket wondering which chilli
             paste will get them closest. Come for quick dinners, stay for the
@@ -348,13 +352,13 @@ export default async function Home() {
       >
         <div className="mx-auto grid max-w-7xl gap-6 border-4 border-[#240B36] bg-[#fff3c7] p-6 shadow-[8px_8px_0_#240B36] sm:p-8 lg:grid-cols-[1fr_0.85fr] lg:items-center lg:p-10">
           <div>
-            <p className="text-sm font-medium lowercase text-[#c7391f]">
+            <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
               the feast letter
             </p>
-            <h2 className="font-serif text-5xl font-black lowercase leading-none sm:text-6xl">
+            <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
               get hungry before friday.
             </h2>
-            <p className="mt-4 max-w-2xl text-lg font-normal leading-8">
+            <p className="mt-4 max-w-2xl text-lg font-normal leading-[1.8rem]">
               One recipe, one pantry note, and one thing worth eating this week.
             </p>
           </div>
@@ -370,7 +374,7 @@ export default async function Home() {
             />
             <button
               type="submit"
-              className="min-h-12 border-2 border-[#240B36] bg-[#ffd447] px-5 text-sm font-medium lowercase shadow-[4px_4px_0_#240B36]"
+              className="min-h-12 border-2 border-[#240B36] bg-[#ffd447] px-5 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]"
             >
               sign up
             </button>

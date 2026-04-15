@@ -16,7 +16,7 @@ function SiteHeader() {
           width={121}
           height={47}
           priority
-          className="h-auto w-[7.2rem] sm:w-[8.4rem]"
+          className="h-auto w-[8.65rem] sm:w-[10.1rem]"
         />
       </Link>
       <div className="flex flex-wrap items-center gap-8">
@@ -53,11 +53,13 @@ export default function SearchPage() {
           <SiteHeader />
 
           <div className="mt-16 max-w-4xl">
-            <p className="text-sm font-medium lowercase">find dinner</p>
-            <h1 className="mt-4 font-serif text-6xl font-bold lowercase leading-none sm:text-7xl lg:text-8xl">
+            <p className="text-sm font-medium uppercase leading-[0.9]">
+              find dinner
+            </p>
+            <h1 className="mt-4 font-serif text-6xl font-bold lowercase leading-[0.9] sm:text-7xl lg:text-8xl">
               search recipes.
             </h1>
-            <p className="mt-6 max-w-2xl text-xl font-normal leading-8">
+            <p className="mt-6 max-w-2xl text-xl font-normal leading-[1.8rem]">
               Search by craving, ingredient, cuisine, or the amount of energy
               you have left after work.
             </p>
@@ -73,7 +75,7 @@ export default function SearchPage() {
               />
               <button
                 type="submit"
-                className="min-h-14 border-2 border-[#240B36] bg-[#ffd447] px-6 text-sm font-medium lowercase shadow-[4px_4px_0_#240B36]"
+                className="min-h-14 border-2 border-[#240B36] bg-[#ffd447] px-6 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]"
               >
                 search
               </button>
@@ -85,10 +87,10 @@ export default function SearchPage() {
       <section className="bg-[#ffd447] px-5 py-20 sm:px-8 sm:py-28 lg:py-32">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 border-b-4 border-[#240B36] pb-5">
-            <p className="text-sm font-medium lowercase text-[#c7391f]">
+            <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
               quick starts
             </p>
-            <h2 className="font-serif text-5xl font-black lowercase leading-none sm:text-6xl">
+            <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
               start with a craving.
             </h2>
           </div>
@@ -97,7 +99,7 @@ export default function SearchPage() {
               <button
                 key={item}
                 type="button"
-                className="border-2 border-[#240B36] bg-[#fff3c7] px-5 py-3 text-lg font-normal lowercase shadow-[4px_4px_0_#240B36] transition duration-200 hover:-translate-y-1 hover:shadow-[6px_6px_0_#240B36]"
+                className="border-2 border-[#240B36] bg-[#fff3c7] px-5 py-3 text-lg font-normal uppercase leading-[0.9] shadow-[4px_4px_0_#240B36] transition duration-200 hover:-translate-y-1 hover:shadow-[6px_6px_0_#240B36]"
               >
                 {item}
               </button>

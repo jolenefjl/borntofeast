@@ -124,7 +124,7 @@ export default async function RecipePage() {
                 width={121}
                 height={47}
                 priority
-                className="h-auto w-[7.2rem] sm:w-[8.4rem]"
+                className="h-auto w-[8.65rem] sm:w-[10.1rem]"
               />
             </Link>
             <div className="flex flex-wrap items-center gap-8">
@@ -152,14 +152,14 @@ export default async function RecipePage() {
 
           <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
             <div>
-              <p className="mb-4 inline-flex border-2 border-[#240B36] bg-[#ffd447] px-3 py-2 text-sm font-medium lowercase">
+              <p className="mb-4 inline-flex border-2 border-[#240B36] bg-[#ffd447] px-3 py-2 text-sm font-medium uppercase leading-[0.9]">
                 {recipe.cuisineType} | {recipe.difficulty} | {totalTime} min
               </p>
-              <h1 className="font-serif text-6xl font-black lowercase leading-none text-[#fff3c7] sm:text-7xl lg:text-8xl">
+              <h1 className="font-serif text-6xl font-black lowercase leading-[0.9] text-[#fff3c7] sm:text-7xl lg:text-8xl">
                 {recipe.title}
               </h1>
               {recipe.intro ? (
-                <p className="mt-6 max-w-2xl text-xl font-normal leading-8 text-[#fff3c7]">
+                <p className="mt-6 max-w-2xl text-xl font-normal leading-[1.8rem] text-[#fff3c7]">
                   {recipe.intro}
                 </p>
               ) : null}
@@ -180,7 +180,7 @@ export default async function RecipePage() {
       </section>
 
       <section className="bg-[#ffd447] px-5 py-8 sm:px-8">
-        <div className="mx-auto grid max-w-7xl gap-3 text-sm font-medium lowercase sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mx-auto grid max-w-7xl gap-3 text-sm font-medium uppercase leading-[0.9] sm:grid-cols-2 lg:grid-cols-5">
           {[
             ["Prep", `${recipe.prepTime} min`],
             ["Cook", `${recipe.cookTime} min`],
@@ -203,16 +203,16 @@ export default async function RecipePage() {
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.85fr_1.15fr]">
           <aside className="h-fit border-4 border-[#240B36] bg-[#f77f1f] p-5 shadow-[8px_8px_0_#240B36] lg:sticky lg:top-6">
             <div className="mb-5 flex flex-wrap gap-3">
-              <button className="border-2 border-[#240B36] bg-[#ffd447] px-4 py-3 text-sm font-medium lowercase shadow-[4px_4px_0_#240B36]">
+              <button className="border-2 border-[#240B36] bg-[#ffd447] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]">
                 print recipe
               </button>
-              <button className="border-2 border-[#240B36] bg-[#fff3c7] px-4 py-3 text-sm font-medium lowercase shadow-[4px_4px_0_#240B36]">
+              <button className="border-2 border-[#240B36] bg-[#fff3c7] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]">
                 cooking mode
               </button>
             </div>
 
             <div className="mb-5 border-2 border-[#240B36] bg-[#fff3c7] p-4">
-              <p className="text-sm font-medium lowercase text-[#c7391f]">
+              <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
                 servings scaler
               </p>
               <div className="mt-3 flex items-center gap-3">
@@ -226,7 +226,7 @@ export default async function RecipePage() {
               </div>
             </div>
 
-            <h2 className="font-serif text-4xl font-black lowercase">
+            <h2 className="font-serif text-4xl font-black lowercase leading-[0.9]">
               ingredients
             </h2>
             <ul className="mt-4 divide-y-2 divide-[#240B36] border-y-2 border-[#240B36] bg-[#fff3c7]">
@@ -254,10 +254,10 @@ export default async function RecipePage() {
           <div className="space-y-8">
             {recipe.intro ? (
               <section className="border-4 border-[#240B36] bg-[#ffd447] p-5">
-                <p className="text-sm font-medium lowercase text-[#c7391f]">
+                <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
                   why i love this
                 </p>
-                <p className="mt-3 text-xl font-normal leading-9">
+                <p className="mt-3 text-xl font-normal leading-[2.025rem]">
                   {recipe.intro}
                 </p>
               </section>
@@ -265,10 +265,10 @@ export default async function RecipePage() {
 
             <section>
               <div className="mb-5 border-b-4 border-[#240B36] pb-4">
-                <p className="text-sm font-medium lowercase text-[#c7391f]">
+                <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
                   step by step
                 </p>
-                <h2 className="font-serif text-5xl font-black lowercase leading-none">
+                <h2 className="font-serif text-5xl font-black lowercase leading-[0.9]">
                   method
                 </h2>
               </div>
@@ -281,7 +281,7 @@ export default async function RecipePage() {
                     <span className="flex h-16 w-16 items-center justify-center border-2 border-[#240B36] bg-[#c7391f] text-3xl font-black text-[#fff3c7]">
                       {index + 1}
                     </span>
-                    <div className="text-lg font-normal leading-8">
+                    <div className="text-lg font-normal leading-[1.8rem]">
                       {step.content ? (
                         <PortableText value={step.content} />
                       ) : (
@@ -295,10 +295,10 @@ export default async function RecipePage() {
 
             {recipe.tipsAndNotes?.length ? (
               <section className="border-4 border-[#240B36] bg-[#e55224] p-5 text-[#fff3c7]">
-                <h2 className="font-serif text-4xl font-black lowercase">
+                <h2 className="font-serif text-4xl font-black lowercase leading-[0.9]">
                   tips & notes
                 </h2>
-                <div className="mt-4 space-y-3 text-lg font-normal leading-8">
+                <div className="mt-4 space-y-3 text-lg font-normal leading-[1.8rem]">
                   <PortableText value={recipe.tipsAndNotes} />
                 </div>
               </section>
@@ -322,7 +322,7 @@ export default async function RecipePage() {
             </section>
 
             <section className="border-4 border-[#240B36] bg-[#240B36] p-5 text-[#fff3c7]">
-              <p className="text-sm font-medium lowercase text-[#ffd447]">
+              <p className="text-sm font-medium uppercase leading-[0.9] text-[#ffd447]">
                 tiktok
               </p>
               <div className="mt-4 flex min-h-64 items-center justify-center border-2 border-dashed border-[#ffd447] p-6 text-center">
