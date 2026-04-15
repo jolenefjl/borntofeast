@@ -113,10 +113,10 @@ export default async function RecipePage() {
       : fallbackGallery;
 
   return (
-    <main className="min-h-screen bg-[#fff3c7] text-[#230b05]">
-      <section className="border-b-4 border-[#230b05] bg-[#e55224] px-5 py-6 sm:px-8">
+    <main className="min-h-screen bg-[#fff3c7] text-[#240B36]">
+      <section className="border-b-4 border-[#240B36] bg-[#e55224] px-5 py-6 sm:px-8">
         <div className="mx-auto max-w-7xl">
-          <nav className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b-2 border-[#230b05] pb-4 text-sm font-black uppercase">
+          <nav className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b-2 border-[#240B36] pb-4 text-sm font-black uppercase">
             <Link href="/">Born to Feast</Link>
             <div className="flex flex-wrap gap-3">
               <Link href="/#recipes">Recipes</Link>
@@ -127,7 +127,7 @@ export default async function RecipePage() {
 
           <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
             <div>
-              <p className="mb-4 inline-flex border-2 border-[#230b05] bg-[#ffd447] px-3 py-2 text-sm font-black uppercase">
+              <p className="mb-4 inline-flex border-2 border-[#240B36] bg-[#ffd447] px-3 py-2 text-sm font-black uppercase">
                 {recipe.cuisineType} | {recipe.difficulty} | {totalTime} min
               </p>
               <h1 className="font-serif text-6xl font-black uppercase leading-none text-[#fff3c7] sm:text-7xl lg:text-8xl">
@@ -140,7 +140,7 @@ export default async function RecipePage() {
               ) : null}
             </div>
 
-            <div className="relative min-h-[440px] border-4 border-[#230b05] bg-[#ffd447] p-3 shadow-[10px_10px_0_#230b05]">
+            <div className="relative min-h-[440px] border-4 border-[#240B36] bg-[#ffd447] p-3 shadow-[10px_10px_0_#240B36]">
               <Image
                 src={heroImage}
                 alt={heroAlt}
@@ -165,10 +165,10 @@ export default async function RecipePage() {
           ].map(([label, value]) => (
             <div
               key={label}
-              className="border-2 border-[#230b05] bg-[#fff3c7] p-4"
+              className="border-2 border-[#240B36] bg-[#fff3c7] p-4"
             >
               <p className="text-[#c7391f]">{label}</p>
-              <p className="mt-1 text-2xl text-[#230b05]">{value}</p>
+              <p className="mt-1 text-2xl text-[#240B36]">{value}</p>
             </div>
           ))}
         </div>
@@ -176,26 +176,26 @@ export default async function RecipePage() {
 
       <section className="bg-[#fff3c7] px-5 py-14 sm:px-8">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.85fr_1.15fr]">
-          <aside className="h-fit border-4 border-[#230b05] bg-[#f77f1f] p-5 shadow-[8px_8px_0_#230b05] lg:sticky lg:top-6">
+          <aside className="h-fit border-4 border-[#240B36] bg-[#f77f1f] p-5 shadow-[8px_8px_0_#240B36] lg:sticky lg:top-6">
             <div className="mb-5 flex flex-wrap gap-3">
-              <button className="border-2 border-[#230b05] bg-[#ffd447] px-4 py-3 text-sm font-black uppercase shadow-[4px_4px_0_#230b05]">
+              <button className="border-2 border-[#240B36] bg-[#ffd447] px-4 py-3 text-sm font-black uppercase shadow-[4px_4px_0_#240B36]">
                 Print recipe
               </button>
-              <button className="border-2 border-[#230b05] bg-[#fff3c7] px-4 py-3 text-sm font-black uppercase shadow-[4px_4px_0_#230b05]">
+              <button className="border-2 border-[#240B36] bg-[#fff3c7] px-4 py-3 text-sm font-black uppercase shadow-[4px_4px_0_#240B36]">
                 Cooking mode
               </button>
             </div>
 
-            <div className="mb-5 border-2 border-[#230b05] bg-[#fff3c7] p-4">
+            <div className="mb-5 border-2 border-[#240B36] bg-[#fff3c7] p-4">
               <p className="text-sm font-black uppercase text-[#c7391f]">
                 Servings scaler
               </p>
               <div className="mt-3 flex items-center gap-3">
-                <button className="h-10 w-10 border-2 border-[#230b05] bg-white text-xl font-black">
+                <button className="h-10 w-10 border-2 border-[#240B36] bg-white text-xl font-black">
                   -
                 </button>
                 <span className="text-3xl font-black">{recipe.servings}</span>
-                <button className="h-10 w-10 border-2 border-[#230b05] bg-white text-xl font-black">
+                <button className="h-10 w-10 border-2 border-[#240B36] bg-white text-xl font-black">
                   +
                 </button>
               </div>
@@ -204,7 +204,7 @@ export default async function RecipePage() {
             <h2 className="font-serif text-4xl font-black uppercase">
               Ingredients
             </h2>
-            <ul className="mt-4 divide-y-2 divide-[#230b05] border-y-2 border-[#230b05] bg-[#fff3c7]">
+            <ul className="mt-4 divide-y-2 divide-[#240B36] border-y-2 border-[#240B36] bg-[#fff3c7]">
               {recipe.ingredients?.map((ingredient) => (
                 <li
                   key={ingredient._key}
@@ -228,7 +228,7 @@ export default async function RecipePage() {
 
           <div className="space-y-8">
             {recipe.intro ? (
-              <section className="border-4 border-[#230b05] bg-[#ffd447] p-5">
+              <section className="border-4 border-[#240B36] bg-[#ffd447] p-5">
                 <p className="text-sm font-black uppercase text-[#c7391f]">
                   Why I love this
                 </p>
@@ -239,7 +239,7 @@ export default async function RecipePage() {
             ) : null}
 
             <section>
-              <div className="mb-5 border-b-4 border-[#230b05] pb-4">
+              <div className="mb-5 border-b-4 border-[#240B36] pb-4">
                 <p className="text-sm font-black uppercase text-[#c7391f]">
                   Step by step
                 </p>
@@ -251,9 +251,9 @@ export default async function RecipePage() {
                 {recipe.methodSteps?.map((step, index) => (
                   <li
                     key={step._key}
-                    className="grid gap-4 border-4 border-[#230b05] bg-white p-5 md:grid-cols-[4.5rem_1fr]"
+                    className="grid gap-4 border-4 border-[#240B36] bg-white p-5 md:grid-cols-[4.5rem_1fr]"
                   >
-                    <span className="flex h-16 w-16 items-center justify-center border-2 border-[#230b05] bg-[#c7391f] text-3xl font-black text-[#fff3c7]">
+                    <span className="flex h-16 w-16 items-center justify-center border-2 border-[#240B36] bg-[#c7391f] text-3xl font-black text-[#fff3c7]">
                       {index + 1}
                     </span>
                     <div className="text-lg font-semibold leading-8">
@@ -269,7 +269,7 @@ export default async function RecipePage() {
             </section>
 
             {recipe.tipsAndNotes?.length ? (
-              <section className="border-4 border-[#230b05] bg-[#e55224] p-5 text-[#fff3c7]">
+              <section className="border-4 border-[#240B36] bg-[#e55224] p-5 text-[#fff3c7]">
                 <h2 className="font-serif text-4xl font-black uppercase">
                   Tips & Notes
                 </h2>
@@ -283,7 +283,7 @@ export default async function RecipePage() {
               {gallery.map((image) => (
                 <div
                   key={image.src}
-                  className="relative min-h-64 border-4 border-[#230b05] bg-[#ffd447]"
+                  className="relative min-h-64 border-4 border-[#240B36] bg-[#ffd447]"
                 >
                   <Image
                     src={image.src}
@@ -296,7 +296,7 @@ export default async function RecipePage() {
               ))}
             </section>
 
-            <section className="border-4 border-[#230b05] bg-[#230b05] p-5 text-[#fff3c7]">
+            <section className="border-4 border-[#240B36] bg-[#240B36] p-5 text-[#fff3c7]">
               <p className="text-sm font-black uppercase text-[#ffd447]">
                 TikTok
               </p>
