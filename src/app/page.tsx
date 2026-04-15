@@ -198,7 +198,10 @@ export default async function Home() {
         </div>
       </section>
 
-      <section id="recipes" className="bg-[#fff3c7] px-5 py-16 sm:px-8">
+      <section
+        id="recipes"
+        className="bg-[#fff3c7] px-5 py-20 sm:px-8 sm:py-28 lg:py-32"
+      >
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col justify-between gap-4 border-b-4 border-[#240B36] pb-5 md:flex-row md:items-end">
             <div>
@@ -261,7 +264,10 @@ export default async function Home() {
         </div>
       </section>
 
-      <section id="categories" className="bg-[#ffd447] px-5 py-16 sm:px-8">
+      <section
+        id="categories"
+        className="bg-[#ffd447] px-5 py-20 sm:px-8 sm:py-28 lg:py-32"
+      >
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 border-b-4 border-[#240B36] pb-5">
             <p className="text-sm font-black uppercase text-[#c7391f]">
@@ -301,7 +307,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="bg-[#240B36] px-5 py-16 text-[#fff3c7] sm:px-8">
+      <section className="bg-[#240B36] px-5 py-20 text-[#fff3c7] sm:px-8 sm:py-28 lg:py-32">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <div>
             <p className="text-sm font-black uppercase text-[#ffd447]">
@@ -320,8 +326,11 @@ export default async function Home() {
         </div>
       </section>
 
-      <section id="newsletter" className="bg-[#c7391f] px-5 py-16 sm:px-8">
-        <div className="mx-auto grid max-w-7xl gap-6 border-4 border-[#240B36] bg-[#fff3c7] p-6 shadow-[8px_8px_0_#240B36] lg:grid-cols-[1fr_0.85fr] lg:items-center">
+      <section
+        id="newsletter"
+        className="bg-[#c7391f] px-5 py-20 sm:px-8 sm:py-28 lg:py-32"
+      >
+        <div className="mx-auto grid max-w-7xl gap-6 border-4 border-[#240B36] bg-[#fff3c7] p-6 shadow-[8px_8px_0_#240B36] sm:p-8 lg:grid-cols-[1fr_0.85fr] lg:items-center lg:p-10">
           <div>
             <p className="text-sm font-black uppercase text-[#c7391f]">
               The Feast Letter
