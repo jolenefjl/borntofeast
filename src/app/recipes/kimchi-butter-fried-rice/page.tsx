@@ -1,33 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
+import {PortableText} from "next-sanity";
+import {notFound} from "next/navigation";
 
-const ingredients = [
-  {amount: "2 cups", item: "cooked short-grain rice", note: "day-old is best"},
-  {amount: "1 cup", item: "kimchi", note: "roughly chopped"},
-  {amount: "2 tbsp", item: "kimchi juice", note: "from the jar"},
-  {amount: "1 tbsp", item: "gochujang", note: "use less for mild heat"},
-  {amount: "2 tbsp", item: "butter", note: "plus more if your heart says yes"},
-  {amount: "1 tsp", item: "soy sauce", note: "or tamari"},
-  {amount: "2", item: "eggs", note: "fried sunny side up"},
-  {amount: "2", item: "spring onions", note: "thinly sliced"},
-  {amount: "1 sheet", item: "roasted seaweed", note: "crushed over the top"},
-];
+import {client} from "@/sanity/lib/client";
+import {urlFor} from "@/sanity/lib/image";
 
-const steps = [
-  "Warm a large frying pan over medium-high heat. Add one tablespoon of butter, then the chopped kimchi. Cook until the edges darken and the kitchen smells sharp, buttery, and slightly sweet.",
-  "Stir in the gochujang, kimchi juice, and soy sauce. Let it bubble for a minute so the sauce thickens and stops tasting raw.",
-  "Add the rice and press it into the pan. Break up any clumps, then toss until every grain is glossy and orange-red. Add the remaining butter and fold it through.",
-  "Taste and adjust. More soy for salt, more kimchi juice for tang, a tiny pinch of sugar if the kimchi is very sour.",
-  "Top with fried eggs, spring onions, seaweed, and sesame seeds. Eat while the edges are still hot and a little crispy.",
-];
+export const dynamic = "force-dynamic";
 
-const tips = [
-  "If your rice is fresh, spread it on a tray for 10 minutes so the steam escapes before frying.",
-  "Norwegian supermarket swap: use sriracha plus a pinch of sugar if you cannot find gochujang yet.",
-  "Add bacon, mushrooms, tofu, or leftover roast chicken when you want it to become dinner-dinner.",
-];
+const fallbackHeroImage =
+  "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=1400&q=85";
 
-const gallery = [
+const fallbackGallery = [
   {
     src: "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=900&q=85",
     alt: "A colorful bowl of fried rice with vegetables",
@@ -42,7 +26,92 @@ const gallery = [
   },
 ];
 
-export default function RecipePage() {
+type PortableBlock = {
+  _key: string;
+  _type: "block";
+  children?: {text?: string}[];
+};
+
+type Recipe = {
+  title: string;
+  cuisineType: string;
+  difficulty: string;
+  prepTime: number;
+  cookTime: number;
+  servings: number;
+  heroImage?: {
+    alt?: string;
+    asset?: unknown;
+  };
+  gallery?: {
+    alt?: string;
+    asset?: unknown;
+  }[];
+  intro?: string;
+  ingredients?: {
+    _key: string;
+    quantity?: number;
+    unit?: string;
+    name: string;
+    note?: string;
+  }[];
+  methodSteps?: {
+    _key: string;
+    content?: PortableBlock[];
+  }[];
+  tipsAndNotes?: PortableBlock[];
+  tiktokUrl?: string;
+};
+
+const recipeQuery = `*[_type == "recipe" && slug.current == $slug][0]{
+  title,
+  cuisineType,
+  difficulty,
+  prepTime,
+  cookTime,
+  servings,
+  heroImage,
+  gallery,
+  intro,
+  ingredients,
+  methodSteps,
+  tipsAndNotes,
+  tiktokUrl
+}`;
+
+function formatIngredientAmount(quantity?: number, unit?: string) {
+  return [quantity, unit].filter(Boolean).join(" ");
+}
+
+function getFirstBlockText(blocks?: PortableBlock[]) {
+  return blocks?.[0]?.children?.map((child) => child.text).join("") || "";
+}
+
+export default async function RecipePage() {
+  const recipe = await client.fetch<Recipe | null>(recipeQuery, {
+    slug: "kimchi-butter-fried-rice",
+  });
+
+  if (!recipe) {
+    notFound();
+  }
+
+  const totalTime = recipe.prepTime + recipe.cookTime;
+  const heroImage = recipe.heroImage?.asset
+    ? urlFor(recipe.heroImage).width(1400).height(1100).fit("crop").url()
+    : fallbackHeroImage;
+  const heroAlt =
+    recipe.heroImage?.alt || `${recipe.title} served in a colorful bowl`;
+  const gallery =
+    recipe.gallery?.length && recipe.gallery.some((image) => image.asset)
+      ? recipe.gallery
+          .filter((image) => image.asset)
+          .map((image) => ({
+            src: urlFor(image).width(900).height(700).fit("crop").url(),
+            alt: image.alt || recipe.title,
+          }))
+      : fallbackGallery;
+
   return (
     <main className="min-h-screen bg-[#fff3c7] text-[#230b05]">
       <section className="border-b-4 border-[#230b05] bg-[#e55224] px-5 py-6 sm:px-8">
@@ -59,22 +128,22 @@ export default function RecipePage() {
           <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
             <div>
               <p className="mb-4 inline-flex border-2 border-[#230b05] bg-[#ffd447] px-3 py-2 text-sm font-black uppercase">
-                Korean | Easy | 18 min
+                {recipe.cuisineType} | {recipe.difficulty} | {totalTime} min
               </p>
               <h1 className="font-serif text-6xl font-black uppercase leading-none text-[#fff3c7] sm:text-7xl lg:text-8xl">
-                Kimchi Butter Fried Rice
+                {recipe.title}
               </h1>
-              <p className="mt-6 max-w-2xl text-xl font-bold leading-8 text-[#fff3c7]">
-                Sharp kimchi, soft egg, butter, and rice that tastes like coming
-                home after a long day. This is the emergency dinner I make when
-                I want something loud, fast, and properly comforting.
-              </p>
+              {recipe.intro ? (
+                <p className="mt-6 max-w-2xl text-xl font-bold leading-8 text-[#fff3c7]">
+                  {recipe.intro}
+                </p>
+              ) : null}
             </div>
 
             <div className="relative min-h-[440px] border-4 border-[#230b05] bg-[#ffd447] p-3 shadow-[10px_10px_0_#230b05]">
               <Image
-                src="https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=1400&q=85"
-                alt="A bowl of kimchi fried rice topped with egg and herbs"
+                src={heroImage}
+                alt={heroAlt}
                 fill
                 priority
                 sizes="(min-width: 1024px) 45vw, 90vw"
@@ -88,13 +157,16 @@ export default function RecipePage() {
       <section className="bg-[#ffd447] px-5 py-8 sm:px-8">
         <div className="mx-auto grid max-w-7xl gap-3 text-sm font-black uppercase sm:grid-cols-2 lg:grid-cols-5">
           {[
-            ["Prep", "8 min"],
-            ["Cook", "10 min"],
-            ["Serves", "2"],
-            ["Difficulty", "Easy"],
-            ["Heat", "Medium"],
+            ["Prep", `${recipe.prepTime} min`],
+            ["Cook", `${recipe.cookTime} min`],
+            ["Serves", `${recipe.servings}`],
+            ["Difficulty", recipe.difficulty],
+            ["Cuisine", recipe.cuisineType],
           ].map(([label, value]) => (
-            <div key={label} className="border-2 border-[#230b05] bg-[#fff3c7] p-4">
+            <div
+              key={label}
+              className="border-2 border-[#230b05] bg-[#fff3c7] p-4"
+            >
               <p className="text-[#c7391f]">{label}</p>
               <p className="mt-1 text-2xl text-[#230b05]">{value}</p>
             </div>
@@ -122,7 +194,7 @@ export default function RecipePage() {
                 <button className="h-10 w-10 border-2 border-[#230b05] bg-white text-xl font-black">
                   -
                 </button>
-                <span className="text-3xl font-black">2</span>
+                <span className="text-3xl font-black">{recipe.servings}</span>
                 <button className="h-10 w-10 border-2 border-[#230b05] bg-white text-xl font-black">
                   +
                 </button>
@@ -133,14 +205,21 @@ export default function RecipePage() {
               Ingredients
             </h2>
             <ul className="mt-4 divide-y-2 divide-[#230b05] border-y-2 border-[#230b05] bg-[#fff3c7]">
-              {ingredients.map((ingredient) => (
-                <li key={ingredient.item} className="grid grid-cols-[5.5rem_1fr] gap-3 py-3">
-                  <span className="font-black">{ingredient.amount}</span>
+              {recipe.ingredients?.map((ingredient) => (
+                <li
+                  key={ingredient._key}
+                  className="grid grid-cols-[5.5rem_1fr] gap-3 py-3"
+                >
+                  <span className="font-black">
+                    {formatIngredientAmount(ingredient.quantity, ingredient.unit)}
+                  </span>
                   <span>
-                    <span className="font-bold">{ingredient.item}</span>
-                    <span className="block text-sm font-semibold text-[#7b2418]">
-                      {ingredient.note}
-                    </span>
+                    <span className="font-bold">{ingredient.name}</span>
+                    {ingredient.note ? (
+                      <span className="block text-sm font-semibold text-[#7b2418]">
+                        {ingredient.note}
+                      </span>
+                    ) : null}
                   </span>
                 </li>
               ))}
@@ -148,17 +227,16 @@ export default function RecipePage() {
           </aside>
 
           <div className="space-y-8">
-            <section className="border-4 border-[#230b05] bg-[#ffd447] p-5">
-              <p className="text-sm font-black uppercase text-[#c7391f]">
-                Why I love this
-              </p>
-              <p className="mt-3 text-xl font-bold leading-9">
-                It is fast enough for a weeknight but still has that deep,
-                fermented, buttery flavour that makes the whole bowl feel like a
-                tiny reward. The trick is cooking the kimchi first so it gets
-                jammy before the rice joins the party.
-              </p>
-            </section>
+            {recipe.intro ? (
+              <section className="border-4 border-[#230b05] bg-[#ffd447] p-5">
+                <p className="text-sm font-black uppercase text-[#c7391f]">
+                  Why I love this
+                </p>
+                <p className="mt-3 text-xl font-bold leading-9">
+                  {recipe.intro}
+                </p>
+              </section>
+            ) : null}
 
             <section>
               <div className="mb-5 border-b-4 border-[#230b05] pb-4">
@@ -170,32 +248,36 @@ export default function RecipePage() {
                 </h2>
               </div>
               <ol className="space-y-5">
-                {steps.map((step, index) => (
+                {recipe.methodSteps?.map((step, index) => (
                   <li
-                    key={step}
+                    key={step._key}
                     className="grid gap-4 border-4 border-[#230b05] bg-white p-5 md:grid-cols-[4.5rem_1fr]"
                   >
                     <span className="flex h-16 w-16 items-center justify-center border-2 border-[#230b05] bg-[#c7391f] text-3xl font-black text-[#fff3c7]">
                       {index + 1}
                     </span>
-                    <p className="text-lg font-semibold leading-8">{step}</p>
+                    <div className="text-lg font-semibold leading-8">
+                      {step.content ? (
+                        <PortableText value={step.content} />
+                      ) : (
+                        getFirstBlockText(step.content)
+                      )}
+                    </div>
                   </li>
                 ))}
               </ol>
             </section>
 
-            <section className="border-4 border-[#230b05] bg-[#e55224] p-5 text-[#fff3c7]">
-              <h2 className="font-serif text-4xl font-black uppercase">
-                Tips & Notes
-              </h2>
-              <ul className="mt-4 space-y-3 text-lg font-bold leading-8">
-                {tips.map((tip) => (
-                  <li key={tip} className="border-l-4 border-[#ffd447] pl-4">
-                    {tip}
-                  </li>
-                ))}
-              </ul>
-            </section>
+            {recipe.tipsAndNotes?.length ? (
+              <section className="border-4 border-[#230b05] bg-[#e55224] p-5 text-[#fff3c7]">
+                <h2 className="font-serif text-4xl font-black uppercase">
+                  Tips & Notes
+                </h2>
+                <div className="mt-4 space-y-3 text-lg font-bold leading-8">
+                  <PortableText value={recipe.tipsAndNotes} />
+                </div>
+              </section>
+            ) : null}
 
             <section className="grid gap-4 md:grid-cols-3">
               {gallery.map((image) => (
@@ -220,7 +302,9 @@ export default function RecipePage() {
               </p>
               <div className="mt-4 flex min-h-64 items-center justify-center border-2 border-dashed border-[#ffd447] p-6 text-center">
                 <p className="max-w-md text-2xl font-black">
-                  TikTok embed appears here when the recipe has a video URL.
+                  {recipe.tiktokUrl
+                    ? recipe.tiktokUrl
+                    : "TikTok embed appears here when the recipe has a video URL."}
                 </p>
               </div>
             </section>
