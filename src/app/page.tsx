@@ -1,6 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import {client} from "@/sanity/lib/client";
+import {urlFor} from "@/sanity/lib/image";
+
+export const dynamic = "force-dynamic";
+
 const featuredRecipes = [
   {
     title: "Charred Spring Onion Oil Noodles",
@@ -69,7 +74,60 @@ const categories = [
   },
 ];
 
-export default function Home() {
+type SiteSettings = {
+  homepageHeroLine1?: string;
+  homepageHeroLine2?: string;
+  homepageHeroLine3?: string;
+  homepageHeroIntro?: string;
+  homepageHeroCtaLabel?: string;
+  homepageHeroCtaHref?: string;
+  homepageHeroPortrait?: {
+    alt?: string;
+    asset?: unknown;
+  };
+};
+
+const siteSettingsQuery = `*[_type == "siteSettings" && _id == "siteSettings"][0]{
+  homepageHeroLine1,
+  homepageHeroLine2,
+  homepageHeroLine3,
+  homepageHeroIntro,
+  homepageHeroCtaLabel,
+  homepageHeroCtaHref,
+  homepageHeroPortrait
+}`;
+
+const defaultHero = {
+  line1: "Big bowls.",
+  line2: "Loud flavors.",
+  line3: "No gatekeeping.",
+  intro:
+    "Easy recipes for Asians abroad who miss home, and for Norwegians discovering the Asian kitchen.",
+  ctaLabel: "Explore",
+  ctaHref: "#recipes",
+};
+
+export default async function Home() {
+  const settings = await client.fetch<SiteSettings | null>(siteSettingsQuery);
+  const heroLines = [
+    settings?.homepageHeroLine1 || defaultHero.line1,
+    settings?.homepageHeroLine2 || defaultHero.line2,
+    settings?.homepageHeroLine3 || defaultHero.line3,
+  ];
+  const heroIntro = settings?.homepageHeroIntro || defaultHero.intro;
+  const heroCtaLabel = settings?.homepageHeroCtaLabel || defaultHero.ctaLabel;
+  const heroCtaHref = settings?.homepageHeroCtaHref || defaultHero.ctaHref;
+  const heroPortrait = settings?.homepageHeroPortrait?.asset
+    ? {
+        src: urlFor(settings.homepageHeroPortrait)
+          .width(640)
+          .height(860)
+          .fit("crop")
+          .url(),
+        alt: settings.homepageHeroPortrait.alt || "Portrait for Born to Feast",
+      }
+    : null;
+
   return (
     <main className="min-h-screen bg-[#c7391f] text-[#240B36]">
       <section className="relative isolate overflow-hidden border-b-4 border-[#240B36] bg-[#e55224]">
@@ -97,20 +155,44 @@ export default function Home() {
               </div>
             </nav>
 
-            <div className="mt-16 max-w-6xl sm:mt-24 lg:mt-28">
-              <h1 className="font-serif text-6xl font-extrabold leading-none sm:text-7xl lg:text-8xl">
-                Big bowls. Loud flavors. No{"\u00a0"}gatekeeping.
-              </h1>
-              <p className="mt-6 max-w-2xl text-xl font-medium leading-8">
-                Easy recipes for Asians abroad who miss home, and for
-                Norwegians discovering the Asian kitchen.
-              </p>
-              <a
-                href="#recipes"
-                className="mt-8 inline-flex border-2 border-[#240B36] bg-[#ffd447] px-6 py-3 text-sm font-black uppercase shadow-[4px_4px_0_#240B36]"
-              >
-                Explore
-              </a>
+            <div
+              className={
+                heroPortrait
+                  ? "mt-16 grid max-w-6xl gap-8 sm:mt-24 lg:mt-28 lg:grid-cols-[minmax(220px,0.38fr)_1fr] lg:items-center"
+                  : "mt-16 max-w-6xl sm:mt-24 lg:mt-28"
+              }
+            >
+              {heroPortrait ? (
+                <div className="relative min-h-[22rem] border-4 border-[#240B36] bg-[#ffd447] shadow-[8px_8px_0_#240B36] lg:h-full lg:min-h-0">
+                  <Image
+                    src={heroPortrait.src}
+                    alt={heroPortrait.alt}
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 28vw, 90vw"
+                    className="object-cover"
+                  />
+                </div>
+              ) : null}
+
+              <div>
+                <h1 className="font-serif text-6xl font-bold leading-none sm:text-7xl lg:text-8xl">
+                  {heroLines.map((line, index) => (
+                    <span key={`${line}-${index}`} className="block">
+                      {line}
+                    </span>
+                  ))}
+                </h1>
+                <p className="mt-6 max-w-2xl text-xl font-medium leading-8">
+                  {heroIntro}
+                </p>
+                <a
+                  href={heroCtaHref}
+                  className="mt-8 inline-flex border-2 border-[#240B36] bg-[#ffd447] px-6 py-3 text-sm font-black uppercase shadow-[4px_4px_0_#240B36]"
+                >
+                  {heroCtaLabel}
+                </a>
+              </div>
             </div>
           </div>
         </div>
