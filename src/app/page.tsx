@@ -74,7 +74,7 @@ export default function Home() {
     <main className="min-h-screen bg-[#c7391f] text-[#240B36]">
       <section className="relative isolate overflow-hidden border-b-4 border-[#240B36] bg-[#e55224]">
         <div className="absolute inset-0 -z-10 opacity-25 bg-[linear-gradient(90deg,#240B36_1px,transparent_1px),linear-gradient(#240B36_1px,transparent_1px)] bg-[size:42px_42px]" />
-        <div className="mx-auto flex min-h-[88vh] max-w-7xl px-5 py-6 sm:px-8 lg:py-10">
+        <div className="mx-auto flex min-h-[88vh] max-w-7xl px-5 pb-20 pt-6 sm:px-8 sm:pb-28 lg:pb-32 lg:pt-10">
           <div className="flex w-full flex-col gap-6">
             <nav
               aria-label="Main navigation"
@@ -87,7 +87,7 @@ export default function Home() {
                   width={121}
                   height={47}
                   priority
-                  className="h-auto w-24 sm:w-28"
+                  className="h-auto w-[7.2rem] sm:w-[8.4rem]"
                 />
               </Link>
               <div className="flex flex-wrap gap-3">
@@ -97,9 +97,9 @@ export default function Home() {
               </div>
             </nav>
 
-            <div className="mt-16 max-w-3xl sm:mt-24 lg:mt-28">
-              <h1 className="font-serif text-6xl font-black leading-none sm:text-7xl lg:text-8xl">
-                Big bowls. Loud flavors. No gatekeeping.
+            <div className="mt-16 max-w-6xl sm:mt-24 lg:mt-28">
+              <h1 className="font-serif text-6xl font-extrabold leading-none sm:text-7xl lg:text-8xl">
+                Big bowls. Loud flavors. No{"\u00a0"}gatekeeping.
               </h1>
               <p className="mt-6 max-w-2xl text-xl font-medium leading-8">
                 Easy recipes for Asians abroad who miss home, and for

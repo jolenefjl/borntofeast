@@ -124,7 +124,7 @@ export default async function RecipePage() {
                 width={121}
                 height={47}
                 priority
-                className="h-auto w-24 sm:w-28"
+                className="h-auto w-[7.2rem] sm:w-[8.4rem]"
               />
             </Link>
             <div className="flex flex-wrap gap-3">

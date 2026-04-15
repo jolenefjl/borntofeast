@@ -11,7 +11,7 @@ const afacad = Afacad({
 const fraunces = Fraunces({
   variable: "--font-fraunces",
   subsets: ["latin"],
-  weight: "900",
+  weight: ["800", "900"],
 });
 
 export const metadata: Metadata = {
