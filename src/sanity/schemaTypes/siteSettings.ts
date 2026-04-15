@@ -10,6 +10,26 @@ export const siteSettingsType = defineType({
       title: "Homepage hero",
       options: {collapsible: true, collapsed: false},
     },
+    {
+      name: "homepageRecipes",
+      title: "Homepage recipes section",
+      options: {collapsible: true, collapsed: false},
+    },
+    {
+      name: "homepageCategories",
+      title: "Homepage categories section",
+      options: {collapsible: true, collapsed: false},
+    },
+    {
+      name: "homepageAbout",
+      title: "Homepage about section",
+      options: {collapsible: true, collapsed: false},
+    },
+    {
+      name: "homepageNewsletter",
+      title: "Homepage newsletter section",
+      options: {collapsible: true, collapsed: false},
+    },
   ],
   fields: [
     defineField({
@@ -70,6 +90,7 @@ export const siteSettingsType = defineType({
       name: "featuredRecipes",
       title: "Homepage featured recipes",
       type: "array",
+      fieldset: "homepageRecipes",
       of: [
         defineArrayMember({
           type: "reference",
@@ -77,6 +98,137 @@ export const siteSettingsType = defineType({
         }),
       ],
       validation: (rule) => rule.max(4),
+    }),
+    defineField({
+      name: "homepageRecipesEyebrow",
+      title: "Recipes eyebrow",
+      type: "string",
+      fieldset: "homepageRecipes",
+    }),
+    defineField({
+      name: "homepageRecipesHeading",
+      title: "Recipes heading",
+      type: "string",
+      fieldset: "homepageRecipes",
+    }),
+    defineField({
+      name: "homepageRecipesCtaLabel",
+      title: "Recipes CTA label",
+      type: "string",
+      fieldset: "homepageRecipes",
+    }),
+    defineField({
+      name: "homepageRecipesCtaHref",
+      title: "Recipes CTA link",
+      type: "string",
+      fieldset: "homepageRecipes",
+    }),
+    defineField({
+      name: "homepageCategoriesEyebrow",
+      title: "Categories eyebrow",
+      type: "string",
+      fieldset: "homepageCategories",
+    }),
+    defineField({
+      name: "homepageCategoriesHeading",
+      title: "Categories heading",
+      type: "string",
+      fieldset: "homepageCategories",
+    }),
+    defineField({
+      name: "homepageCategoryCards",
+      title: "Homepage category cards",
+      type: "array",
+      fieldset: "homepageCategories",
+      of: [
+        defineArrayMember({
+          name: "homepageCategoryCard",
+          title: "Category card",
+          type: "object",
+          fields: [
+            defineField({
+              name: "title",
+              title: "Title",
+              type: "string",
+            }),
+            defineField({
+              name: "href",
+              title: "Link",
+              type: "string",
+            }),
+            defineField({
+              name: "copy",
+              title: "Copy",
+              type: "text",
+              rows: 3,
+            }),
+            defineField({
+              name: "image",
+              title: "Image",
+              type: "image",
+              options: {hotspot: true},
+              fields: [
+                defineField({
+                  name: "alt",
+                  title: "Alt text",
+                  type: "string",
+                }),
+              ],
+            }),
+          ],
+          preview: {
+            select: {
+              title: "title",
+              subtitle: "copy",
+              media: "image",
+            },
+          },
+        }),
+      ],
+    }),
+    defineField({
+      name: "homepageAboutEyebrow",
+      title: "About eyebrow",
+      type: "string",
+      fieldset: "homepageAbout",
+    }),
+    defineField({
+      name: "homepageAboutHeading",
+      title: "About heading",
+      type: "string",
+      fieldset: "homepageAbout",
+    }),
+    defineField({
+      name: "homepageAboutText",
+      title: "About text",
+      type: "text",
+      rows: 4,
+      fieldset: "homepageAbout",
+    }),
+    defineField({
+      name: "homepageNewsletterEyebrow",
+      title: "Newsletter eyebrow",
+      type: "string",
+      fieldset: "homepageNewsletter",
+    }),
+    defineField({
+      name: "homepageNewsletterHeading",
+      title: "Newsletter heading",
+      type: "string",
+      fieldset: "homepageNewsletter",
+    }),
+    defineField({
+      name: "homepageNewsletterText",
+      title: "Newsletter text",
+      type: "text",
+      rows: 3,
+      fieldset: "homepageNewsletter",
+    }),
+    defineField({
+      name: "homepageNewsletterButtonLabel",
+      title: "Newsletter button label",
+      type: "string",
+      fieldset: "homepageNewsletter",
     }),
     defineField({
       name: "newsletterCtaText",

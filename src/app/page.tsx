@@ -7,7 +7,7 @@ import {urlFor} from "@/sanity/lib/image";
 
 export const dynamic = "force-dynamic";
 
-const featuredRecipes = [
+const featuredRecipes: RecipeCard[] = [
   {
     title: "Charred Spring Onion Oil Noodles",
     href: "/search?tag=noodles",
@@ -46,7 +46,7 @@ const featuredRecipes = [
   },
 ];
 
-const categories = [
+const categories: CategoryCard[] = [
   {
     name: "Malaysian",
     href: "/search?category=malaysian",
@@ -92,16 +92,105 @@ type SiteSettings = {
     alt?: string;
     asset?: unknown;
   };
+  featuredRecipes?: RecipeCard[];
+  homepageRecipesEyebrow?: string;
+  homepageRecipesHeading?: string;
+  homepageRecipesCtaLabel?: string;
+  homepageRecipesCtaHref?: string;
+  homepageCategoriesEyebrow?: string;
+  homepageCategoriesHeading?: string;
+  homepageCategoryCards?: CategoryCard[];
+  homepageAboutEyebrow?: string;
+  homepageAboutHeading?: string;
+  homepageAboutText?: string;
+  homepageNewsletterEyebrow?: string;
+  homepageNewsletterHeading?: string;
+  homepageNewsletterText?: string;
+  homepageNewsletterButtonLabel?: string;
 };
 
-const siteSettingsQuery = `*[_type == "siteSettings" && _id == "siteSettings"][0]{
-  homepageHeroLine1,
-  homepageHeroLine2,
-  homepageHeroLine3,
-  homepageHeroIntro,
-  homepageHeroCtaLabel,
-  homepageHeroCtaHref,
-  homepageHeroPortrait
+type HomepageData = {
+  settings: SiteSettings | null;
+  featuredRecipes: RecipeCard[];
+};
+
+type RecipeCard = {
+  title?: string;
+  href?: string;
+  slug?: string;
+  cuisine?: string;
+  difficulty?: string;
+  time?: string;
+  prepTime?: number;
+  cookTime?: number;
+  description?: string;
+  image?:
+    | string
+    | {
+        alt?: string;
+        asset?: unknown;
+      };
+  alt?: string;
+};
+
+type CategoryCard = {
+  name?: string;
+  title?: string;
+  href?: string;
+  copy?: string;
+  image?:
+    | string
+    | {
+        alt?: string;
+        asset?: unknown;
+      };
+  alt?: string;
+};
+
+const homepageQuery = `{
+  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{
+    homepageHeroLine1,
+    homepageHeroLine2,
+    homepageHeroLine3,
+    homepageHeroIntro,
+    homepageHeroCtaLabel,
+    homepageHeroCtaHref,
+    homepageHeroPortrait,
+    homepageRecipesEyebrow,
+    homepageRecipesHeading,
+    homepageRecipesCtaLabel,
+    homepageRecipesCtaHref,
+    homepageCategoriesEyebrow,
+    homepageCategoriesHeading,
+    homepageCategoryCards,
+    homepageAboutEyebrow,
+    homepageAboutHeading,
+    homepageAboutText,
+    homepageNewsletterEyebrow,
+    homepageNewsletterHeading,
+    homepageNewsletterText,
+    homepageNewsletterButtonLabel,
+    featuredRecipes[]->{
+      title,
+      "slug": slug.current,
+      "cuisine": cuisineType,
+      difficulty,
+      prepTime,
+      cookTime,
+      "description": intro,
+      "image": heroImage
+    }
+  },
+  "featuredRecipes": *[_type == "recipe" && featured == true] | order(publishedAt desc)[0...4]{
+    title,
+    "slug": slug.current,
+    "cuisine": cuisineType,
+    difficulty,
+    prepTime,
+    cookTime,
+    "description": intro,
+    "image": heroImage
+  }
 }`;
 
 const defaultHero = {
@@ -114,16 +203,59 @@ const defaultHero = {
   ctaHref: "#recipes",
 };
 
+const defaultHomepageCopy = {
+  recipesEyebrow: "homepage picks",
+  recipesHeading: "cook this week",
+  recipesCtaLabel: "get the feast letter",
+  recipesCtaHref: "#newsletter",
+  categoriesEyebrow: "browse the pantry",
+  categoriesHeading: "cuisines and cravings",
+  aboutEyebrow: "about jo",
+  aboutHeading: "malaysian roots, norway kitchen.",
+  aboutText:
+    "Born to Feast is for the homesick, the curious, the hungry, and the people standing in a Norwegian supermarket wondering which chilli paste will get them closest. Come for quick dinners, stay for the recipes that ask for a whole afternoon and reward you properly.",
+  newsletterEyebrow: "the feast letter",
+  newsletterHeading: "get hungry before friday.",
+  newsletterText: "One recipe, one pantry note, and one thing worth eating this week.",
+  newsletterButtonLabel: "sign up",
+};
+
+function hasText(value?: string) {
+  return Boolean(value?.trim());
+}
+
+function getSetting(
+  settings: SiteSettings | null,
+  value: string | null | undefined,
+  fallback: string,
+) {
+  return settings && value != null ? value : fallback;
+}
+
+function getImageSource(
+  image: {asset?: unknown} | undefined,
+  fallback: string,
+  width: number,
+  height: number,
+) {
+  return image?.asset
+    ? urlFor(image).width(width).height(height).fit("crop").url()
+    : fallback;
+}
+
 export default async function Home() {
-  const settings = await client.fetch<SiteSettings | null>(siteSettingsQuery);
-  const heroLines = [
-    settings?.homepageHeroLine1 || defaultHero.line1,
-    settings?.homepageHeroLine2 || defaultHero.line2,
-    settings?.homepageHeroLine3 || defaultHero.line3,
-  ];
-  const heroIntro = settings?.homepageHeroIntro || defaultHero.intro;
-  const heroCtaLabel = settings?.homepageHeroCtaLabel || defaultHero.ctaLabel;
-  const heroCtaHref = settings?.homepageHeroCtaHref || defaultHero.ctaHref;
+  const {settings, featuredRecipes: sanityFeaturedRecipes} =
+    await client.fetch<HomepageData>(homepageQuery);
+  const heroLines = settings
+    ? [
+        settings.homepageHeroLine1,
+        settings.homepageHeroLine2,
+        settings.homepageHeroLine3,
+      ].filter(hasText)
+    : [defaultHero.line1, defaultHero.line2, defaultHero.line3];
+  const heroIntro = settings?.homepageHeroIntro ?? defaultHero.intro;
+  const heroCtaLabel = settings?.homepageHeroCtaLabel ?? defaultHero.ctaLabel;
+  const heroCtaHref = settings?.homepageHeroCtaHref ?? defaultHero.ctaHref;
   const heroPortrait = settings?.homepageHeroPortrait?.asset
     ? {
         src: urlFor(settings.homepageHeroPortrait)
@@ -134,6 +266,83 @@ export default async function Home() {
         alt: settings.homepageHeroPortrait.alt || "Portrait for Born to Feast",
       }
     : null;
+  const displayedRecipes =
+    settings?.featuredRecipes?.length &&
+    settings.featuredRecipes.some((recipe) => recipe.slug)
+      ? settings.featuredRecipes
+      : sanityFeaturedRecipes.length
+        ? sanityFeaturedRecipes
+        : featuredRecipes;
+  const displayedCategories =
+    settings?.homepageCategoryCards?.length &&
+    settings.homepageCategoryCards.some((category) => category.title)
+      ? settings.homepageCategoryCards
+      : categories;
+  const recipesEyebrow = getSetting(
+    settings,
+    settings?.homepageRecipesEyebrow,
+    defaultHomepageCopy.recipesEyebrow,
+  );
+  const recipesHeading = getSetting(
+    settings,
+    settings?.homepageRecipesHeading,
+    defaultHomepageCopy.recipesHeading,
+  );
+  const recipesCtaLabel = getSetting(
+    settings,
+    settings?.homepageRecipesCtaLabel,
+    defaultHomepageCopy.recipesCtaLabel,
+  );
+  const recipesCtaHref = getSetting(
+    settings,
+    settings?.homepageRecipesCtaHref,
+    defaultHomepageCopy.recipesCtaHref,
+  );
+  const categoriesEyebrow = getSetting(
+    settings,
+    settings?.homepageCategoriesEyebrow,
+    defaultHomepageCopy.categoriesEyebrow,
+  );
+  const categoriesHeading = getSetting(
+    settings,
+    settings?.homepageCategoriesHeading,
+    defaultHomepageCopy.categoriesHeading,
+  );
+  const aboutEyebrow = getSetting(
+    settings,
+    settings?.homepageAboutEyebrow,
+    defaultHomepageCopy.aboutEyebrow,
+  );
+  const aboutHeading = getSetting(
+    settings,
+    settings?.homepageAboutHeading,
+    defaultHomepageCopy.aboutHeading,
+  );
+  const aboutText = getSetting(
+    settings,
+    settings?.homepageAboutText,
+    defaultHomepageCopy.aboutText,
+  );
+  const newsletterEyebrow = getSetting(
+    settings,
+    settings?.homepageNewsletterEyebrow,
+    defaultHomepageCopy.newsletterEyebrow,
+  );
+  const newsletterHeading = getSetting(
+    settings,
+    settings?.homepageNewsletterHeading,
+    defaultHomepageCopy.newsletterHeading,
+  );
+  const newsletterText = getSetting(
+    settings,
+    settings?.homepageNewsletterText,
+    defaultHomepageCopy.newsletterText,
+  );
+  const newsletterButtonLabel = getSetting(
+    settings,
+    settings?.homepageNewsletterButtonLabel,
+    defaultHomepageCopy.newsletterButtonLabel,
+  );
 
   return (
     <main className="min-h-screen bg-[#c7391f] text-[#240B36]">
@@ -163,22 +372,28 @@ export default async function Home() {
               ) : null}
 
               <div>
-                <h1 className="font-serif text-6xl font-bold lowercase leading-[0.9] sm:text-7xl lg:text-8xl">
-                  {heroLines.map((line, index) => (
-                    <span key={`${line}-${index}`} className="block">
-                      {line}
-                    </span>
-                  ))}
-                </h1>
-                <p className="mt-6 max-w-2xl text-xl font-normal leading-[1.8rem]">
-                  {heroIntro}
-                </p>
-                <a
-                  href={heroCtaHref}
-                  className="mt-8 inline-flex border-2 border-[#240B36] bg-[#ffd447] px-6 py-3 text-sm font-black uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]"
-                >
-                  {heroCtaLabel}
-                </a>
+                {heroLines.length ? (
+                  <h1 className="font-serif text-6xl font-bold lowercase leading-[0.9] sm:text-7xl lg:text-8xl">
+                    {heroLines.map((line, index) => (
+                      <span key={`${line}-${index}`} className="block">
+                        {line}
+                      </span>
+                    ))}
+                  </h1>
+                ) : null}
+                {hasText(heroIntro) ? (
+                  <p className="mt-6 max-w-2xl text-xl font-normal leading-[1.8rem]">
+                    {heroIntro}
+                  </p>
+                ) : null}
+                {hasText(heroCtaLabel) && hasText(heroCtaHref) ? (
+                  <a
+                    href={heroCtaHref}
+                    className="mt-8 inline-flex border-2 border-[#240B36] bg-[#ffd447] px-6 py-3 text-sm font-black uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]"
+                  >
+                    {heroCtaLabel}
+                  </a>
+                ) : null}
               </div>
             </div>
           </div>
@@ -192,32 +407,62 @@ export default async function Home() {
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col justify-between gap-4 border-b-4 border-[#240B36] pb-5 md:flex-row md:items-end">
             <div>
-              <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
-                homepage picks
-              </p>
-              <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
-                cook this week
-              </h2>
+              {hasText(recipesEyebrow) ? (
+                <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
+                  {recipesEyebrow}
+                </p>
+              ) : null}
+              {hasText(recipesHeading) ? (
+                <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
+                  {recipesHeading}
+                </h2>
+              ) : null}
             </div>
-            <a
-              href="#newsletter"
-              className="inline-flex w-fit border-2 border-[#240B36] bg-[#ffd447] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]"
-            >
-              get the feast letter
-            </a>
+            {hasText(recipesCtaLabel) && hasText(recipesCtaHref) ? (
+              <a
+                href={recipesCtaHref}
+                className="inline-flex w-fit border-2 border-[#240B36] bg-[#ffd447] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]"
+              >
+                {recipesCtaLabel}
+              </a>
+            ) : null}
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">
-            {featuredRecipes.map((recipe) => (
+            {displayedRecipes.map((recipe) => {
+              const href =
+                "slug" in recipe && recipe.slug
+                  ? `/recipes/${recipe.slug}`
+                  : recipe.href;
+              const time =
+                recipe.time ||
+                (typeof recipe.prepTime === "number" &&
+                typeof recipe.cookTime === "number"
+                  ? `${recipe.prepTime + recipe.cookTime} min`
+                  : undefined);
+              const image =
+                typeof recipe.image === "string"
+                  ? recipe.image
+                  : getImageSource(recipe.image, "", 1000, 750);
+              const imageAlt =
+                typeof recipe.image === "object"
+                  ? recipe.image.alt
+                  : recipe.alt;
+
+              if (!recipe.title || !href || !image) {
+                return null;
+              }
+
+              return (
               <Link
                 key={recipe.title}
-                href={recipe.href}
+                href={href}
                 className="group block border-4 border-[#240B36] bg-[#f77f1f] shadow-[8px_8px_0_#240B36] transition duration-200 hover:-translate-y-2 hover:shadow-[12px_12px_0_#240B36]"
               >
                 <div className="relative aspect-[4/3] overflow-hidden border-b-4 border-[#240B36]">
                   <Image
-                    src={recipe.image}
-                    alt={recipe.alt}
+                    src={image}
+                    alt={imageAlt || recipe.title}
                     fill
                     sizes="(min-width: 1024px) 31vw, 90vw"
                     className="object-cover transition duration-300 group-hover:scale-105"
@@ -225,25 +470,34 @@ export default async function Home() {
                 </div>
                 <div className="p-5">
                   <div className="mb-4 flex flex-wrap gap-2 text-xs font-medium uppercase leading-[0.9]">
-                    <span className="border-2 border-[#240B36] bg-[#fff3c7] px-2 py-1">
-                      {recipe.cuisine}
-                    </span>
-                    <span className="border-2 border-[#240B36] bg-[#ffd447] px-2 py-1">
-                      {recipe.difficulty}
-                    </span>
-                    <span className="border-2 border-[#240B36] bg-[#c7391f] px-2 py-1 text-[#fff3c7]">
-                      {recipe.time}
-                    </span>
+                    {recipe.cuisine ? (
+                      <span className="border-2 border-[#240B36] bg-[#fff3c7] px-2 py-1">
+                        {recipe.cuisine}
+                      </span>
+                    ) : null}
+                    {recipe.difficulty ? (
+                      <span className="border-2 border-[#240B36] bg-[#ffd447] px-2 py-1">
+                        {recipe.difficulty}
+                      </span>
+                    ) : null}
+                    {time ? (
+                      <span className="border-2 border-[#240B36] bg-[#c7391f] px-2 py-1 text-[#fff3c7]">
+                        {time}
+                      </span>
+                    ) : null}
                   </div>
                   <h3 className="text-3xl font-black lowercase leading-[1.8rem]">
                     {recipe.title}
                   </h3>
-                  <p className="mt-4 text-base font-normal leading-[1.575rem]">
-                    {recipe.description}
-                  </p>
+                  {recipe.description ? (
+                    <p className="mt-4 text-base font-normal leading-[1.575rem]">
+                      {recipe.description}
+                    </p>
+                  ) : null}
                 </div>
               </Link>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -254,40 +508,63 @@ export default async function Home() {
       >
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 border-b-4 border-[#240B36] pb-5">
-            <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
-              browse the pantry
-            </p>
-            <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
-              cuisines and cravings
-            </h2>
+            {hasText(categoriesEyebrow) ? (
+              <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
+                {categoriesEyebrow}
+              </p>
+            ) : null}
+            {hasText(categoriesHeading) ? (
+              <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
+                {categoriesHeading}
+              </h2>
+            ) : null}
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
-            {categories.map((category) => (
+            {displayedCategories.map((category) => {
+              const image =
+                typeof category.image === "string"
+                  ? category.image
+                  : getImageSource(category.image, "", 800, 600);
+              const imageAlt =
+                typeof category.image === "object"
+                  ? category.image.alt
+                  : category.alt;
+
+              if (!category.title && !category.name) {
+                return null;
+              }
+
+              return (
               <Link
-                key={category.name}
-                href={category.href}
+                key={category.title || category.name}
+                href={category.href || "/search"}
                 className="group grid border-4 border-[#240B36] bg-[#fff3c7] transition duration-200 hover:-translate-y-2 hover:shadow-[10px_10px_0_#240B36] md:grid-cols-[0.85fr_1fr]"
               >
-                <div className="relative min-h-56 overflow-hidden border-b-4 border-[#240B36] md:border-b-0 md:border-r-4">
-                  <Image
-                    src={category.image}
-                    alt={category.alt}
-                    fill
-                    sizes="(min-width: 768px) 24vw, 90vw"
-                    className="object-cover transition duration-300 group-hover:scale-105"
-                  />
-                </div>
+                {image ? (
+                  <div className="relative min-h-56 overflow-hidden border-b-4 border-[#240B36] md:border-b-0 md:border-r-4">
+                    <Image
+                      src={image}
+                      alt={imageAlt || category.title || category.name || "Category"}
+                      fill
+                      sizes="(min-width: 768px) 24vw, 90vw"
+                      className="object-cover transition duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                ) : null}
                 <div className="p-5">
                   <h3 className="font-serif text-4xl font-black lowercase leading-[0.9]">
-                    {category.name}
+                    {category.title || category.name}
                   </h3>
-                  <p className="mt-3 text-base font-normal leading-[1.575rem]">
-                    {category.copy}
-                  </p>
+                  {category.copy ? (
+                    <p className="mt-3 text-base font-normal leading-[1.575rem]">
+                      {category.copy}
+                    </p>
+                  ) : null}
                 </div>
               </Link>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -295,19 +572,22 @@ export default async function Home() {
       <section className="bg-[#240B36] px-5 py-20 text-[#fff3c7] sm:px-8 sm:py-28 lg:py-32">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <div>
-            <p className="text-sm font-medium uppercase leading-[0.9] text-[#ffd447]">
-              about jo
-            </p>
-            <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
-              malaysian roots, norway kitchen.
-            </h2>
+            {hasText(aboutEyebrow) ? (
+              <p className="text-sm font-medium uppercase leading-[0.9] text-[#ffd447]">
+                {aboutEyebrow}
+              </p>
+            ) : null}
+            {hasText(aboutHeading) ? (
+              <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
+                {aboutHeading}
+              </h2>
+            ) : null}
           </div>
-          <p className="text-xl font-normal leading-[2.025rem]">
-            Born to Feast is for the homesick, the curious, the hungry, and the
-            people standing in a Norwegian supermarket wondering which chilli
-            paste will get them closest. Come for quick dinners, stay for the
-            recipes that ask for a whole afternoon and reward you properly.
-          </p>
+          {hasText(aboutText) ? (
+            <p className="text-xl font-normal leading-[2.025rem]">
+              {aboutText}
+            </p>
+          ) : null}
         </div>
       </section>
 
@@ -317,15 +597,21 @@ export default async function Home() {
       >
         <div className="mx-auto grid max-w-7xl gap-6 border-4 border-[#240B36] bg-[#fff3c7] p-6 shadow-[8px_8px_0_#240B36] sm:p-8 lg:grid-cols-[1fr_0.85fr] lg:items-center lg:p-10">
           <div>
-            <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
-              the feast letter
-            </p>
-            <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
-              get hungry before friday.
-            </h2>
-            <p className="mt-4 max-w-2xl text-lg font-normal leading-[1.8rem]">
-              One recipe, one pantry note, and one thing worth eating this week.
-            </p>
+            {hasText(newsletterEyebrow) ? (
+              <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
+                {newsletterEyebrow}
+              </p>
+            ) : null}
+            {hasText(newsletterHeading) ? (
+              <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
+                {newsletterHeading}
+              </h2>
+            ) : null}
+            {hasText(newsletterText) ? (
+              <p className="mt-4 max-w-2xl text-lg font-normal leading-[1.8rem]">
+                {newsletterText}
+              </p>
+            ) : null}
           </div>
           <form className="grid gap-3 sm:grid-cols-[1fr_auto]">
             <label className="sr-only" htmlFor="email">
@@ -341,7 +627,7 @@ export default async function Home() {
               type="submit"
               className="min-h-12 border-2 border-[#240B36] bg-[#ffd447] px-5 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]"
             >
-              sign up
+              {newsletterButtonLabel}
             </button>
           </form>
         </div>

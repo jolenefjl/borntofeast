@@ -8,6 +8,12 @@ import {urlFor} from "@/sanity/lib/image";
 
 export const dynamic = "force-dynamic";
 
+type RecipePageProps = {
+  params: Promise<{
+    slug: string;
+  }>;
+};
+
 const fallbackHeroImage =
   "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=1400&q=85";
 
@@ -87,9 +93,10 @@ function getFirstBlockText(blocks?: PortableBlock[]) {
   return blocks?.[0]?.children?.map((child) => child.text).join("") || "";
 }
 
-export default async function RecipePage() {
+export default async function RecipePage({params}: RecipePageProps) {
+  const {slug} = await params;
   const recipe = await client.fetch<Recipe | null>(recipeQuery, {
-    slug: "kimchi-butter-fried-rice",
+    slug,
   });
 
   if (!recipe) {
@@ -196,11 +203,11 @@ export default async function RecipePage() {
             <h2 className="font-serif text-4xl font-black lowercase leading-[0.9]">
               ingredients
             </h2>
-            <ul className="mt-4 divide-y-2 divide-[#240B36] border-y-2 border-[#240B36] bg-[#fff3c7]">
+            <ul className="mt-4 divide-y-2 divide-[#240B36] border-2 border-[#240B36] bg-[#fff3c7] p-4">
               {recipe.ingredients?.map((ingredient) => (
                 <li
                   key={ingredient._key}
-                  className="grid grid-cols-[5.5rem_1fr] gap-3 py-3"
+                  className="grid grid-cols-[5.5rem_1fr] gap-3 py-3 first:pt-0 last:pb-0"
                 >
                   <span className="font-semibold">
                     {formatIngredientAmount(ingredient.quantity, ingredient.unit)}
