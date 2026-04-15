@@ -9,6 +9,50 @@ const cuisineOptions = [
   "Other",
 ];
 
+const ingredientFields = [
+  defineField({
+    name: "quantity",
+    title: "Quantity",
+    type: "number",
+    validation: (rule) => rule.min(0),
+  }),
+  defineField({
+    name: "unit",
+    title: "Unit",
+    type: "string",
+  }),
+  defineField({
+    name: "name",
+    title: "Ingredient name",
+    type: "string",
+    validation: (rule) => rule.required(),
+  }),
+  defineField({
+    name: "note",
+    title: "Optional note",
+    type: "string",
+  }),
+];
+
+function prepareIngredientPreview({
+  quantity,
+  unit,
+  title,
+  note,
+}: {
+  quantity?: number;
+  unit?: string;
+  title?: string;
+  note?: string;
+}) {
+  const amount = [quantity, unit].filter(Boolean).join(" ");
+
+  return {
+    title: [amount, title].filter(Boolean).join(" "),
+    subtitle: note,
+  };
+}
+
 export const recipeType = defineType({
   name: "recipe",
   title: "Recipe",
@@ -129,30 +173,7 @@ export const recipeType = defineType({
           name: "ingredient",
           title: "Ingredient",
           type: "object",
-          fields: [
-            defineField({
-              name: "quantity",
-              title: "Quantity",
-              type: "number",
-              validation: (rule) => rule.min(0),
-            }),
-            defineField({
-              name: "unit",
-              title: "Unit",
-              type: "string",
-            }),
-            defineField({
-              name: "name",
-              title: "Ingredient name",
-              type: "string",
-              validation: (rule) => rule.required(),
-            }),
-            defineField({
-              name: "note",
-              title: "Optional note",
-              type: "string",
-            }),
-          ],
+          fields: ingredientFields,
           preview: {
             select: {
               quantity: "quantity",
@@ -160,13 +181,7 @@ export const recipeType = defineType({
               title: "name",
               note: "note",
             },
-            prepare({quantity, unit, title, note}) {
-              const amount = [quantity, unit].filter(Boolean).join(" ");
-              return {
-                title: [amount, title].filter(Boolean).join(" "),
-                subtitle: note,
-              };
-            },
+            prepare: prepareIngredientPreview,
           },
         }),
       ],
@@ -188,6 +203,30 @@ export const recipeType = defineType({
               type: "array",
               of: [defineArrayMember({type: "block"})],
               validation: (rule) => rule.required(),
+            }),
+            defineField({
+              name: "ingredients",
+              title: "Ingredients used in this step",
+              description:
+                "Optional. Add ingredients here when you want them to appear inside the method. Quantities scale with the servings buttons.",
+              type: "array",
+              of: [
+                defineArrayMember({
+                  name: "stepIngredient",
+                  title: "Step ingredient",
+                  type: "object",
+                  fields: ingredientFields,
+                  preview: {
+                    select: {
+                      quantity: "quantity",
+                      unit: "unit",
+                      title: "name",
+                      note: "note",
+                    },
+                    prepare: prepareIngredientPreview,
+                  },
+                }),
+              ],
             }),
           ],
           preview: {

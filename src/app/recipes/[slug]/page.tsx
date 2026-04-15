@@ -1,8 +1,8 @@
 import Image from "next/image";
-import {PortableText} from "next-sanity";
 import {notFound} from "next/navigation";
 
 import {SiteHeader} from "@/app/components/SiteHeader";
+import {RecipeContent} from "@/app/recipes/[slug]/RecipeContent";
 import {client} from "@/sanity/lib/client";
 import {urlFor} from "@/sanity/lib/image";
 
@@ -64,6 +64,13 @@ type Recipe = {
   methodSteps?: {
     _key: string;
     content?: PortableBlock[];
+    ingredients?: {
+      _key: string;
+      quantity?: number;
+      unit?: string;
+      name: string;
+      note?: string;
+    }[];
   }[];
   tipsAndNotes?: PortableBlock[];
   tiktokUrl?: string;
@@ -85,14 +92,6 @@ const recipeQuery = `*[_type == "recipe" && slug.current == $slug][0]{
   tiktokUrl
 }`;
 
-function formatIngredientAmount(quantity?: number, unit?: string) {
-  return [quantity, unit].filter(Boolean).join(" ");
-}
-
-function getFirstBlockText(blocks?: PortableBlock[]) {
-  return blocks?.[0]?.children?.map((child) => child.text).join("") || "";
-}
-
 export default async function RecipePage({params}: RecipePageProps) {
   const {slug} = await params;
   const recipe = await client.fetch<Recipe | null>(recipeQuery, {
@@ -105,7 +104,7 @@ export default async function RecipePage({params}: RecipePageProps) {
 
   const totalTime = recipe.prepTime + recipe.cookTime;
   const heroImage = recipe.heroImage?.asset
-    ? urlFor(recipe.heroImage).width(1400).height(1100).fit("crop").url()
+    ? urlFor(recipe.heroImage).width(1000).height(1300).fit("crop").url()
     : fallbackHeroImage;
   const heroAlt =
     recipe.heroImage?.alt || `${recipe.title} served in a colorful bowl`;
@@ -120,16 +119,27 @@ export default async function RecipePage({params}: RecipePageProps) {
       : fallbackGallery;
 
   return (
-    <main className="min-h-screen bg-[#fff3c7] text-[#240B36]">
+    <main className="min-h-screen overflow-x-hidden bg-[#fff3c7] text-[#240B36]">
       <SiteHeader />
-      <section className="border-b-4 border-[#240B36] bg-[#e55224] px-5 py-12 sm:px-8 lg:py-20">
+      <section className="border-b-4 border-[#240B36] bg-[#e55224] px-4 py-10 sm:px-8 lg:py-20">
         <div className="mx-auto max-w-7xl">
-          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
-            <div>
+          <div className="grid gap-8 lg:grid-cols-[0.78fr_1fr] lg:items-center">
+            <div className="relative min-h-[28rem] border-4 border-[#240B36] bg-[#ffd447] p-3 shadow-[8px_8px_0_#240B36] sm:min-h-[38rem] lg:min-h-[44rem]">
+              <Image
+                src={heroImage}
+                alt={heroAlt}
+                fill
+                priority
+                sizes="(min-width: 1024px) 38vw, 92vw"
+                className="object-cover p-3"
+              />
+            </div>
+
+            <div className="min-w-0">
               <p className="mb-4 inline-flex border-2 border-[#240B36] bg-[#ffd447] px-3 py-2 text-sm font-medium uppercase leading-[0.9]">
                 {recipe.cuisineType} | {recipe.difficulty} | {totalTime} min
               </p>
-              <h1 className="font-serif text-6xl font-black lowercase leading-[0.9] text-[#fff3c7] sm:text-7xl lg:text-8xl">
+              <h1 className="font-serif text-5xl font-black lowercase leading-[0.9] text-[#fff3c7] sm:text-7xl lg:text-8xl">
                 {recipe.title}
               </h1>
               {recipe.intro ? (
@@ -137,17 +147,6 @@ export default async function RecipePage({params}: RecipePageProps) {
                   {recipe.intro}
                 </p>
               ) : null}
-            </div>
-
-            <div className="relative min-h-[440px] border-4 border-[#240B36] bg-[#ffd447] p-3 shadow-[10px_10px_0_#240B36]">
-              <Image
-                src={heroImage}
-                alt={heroAlt}
-                fill
-                priority
-                sizes="(min-width: 1024px) 45vw, 90vw"
-                className="object-cover p-3"
-              />
             </div>
           </div>
         </div>
@@ -173,143 +172,14 @@ export default async function RecipePage({params}: RecipePageProps) {
         </div>
       </section>
 
-      <section className="bg-[#fff3c7] px-5 py-14 sm:px-8">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.85fr_1.15fr]">
-          <aside className="h-fit border-4 border-[#240B36] bg-[#f77f1f] p-5 shadow-[8px_8px_0_#240B36] lg:sticky lg:top-6">
-            <div className="mb-5 flex flex-wrap gap-3">
-              <button className="border-2 border-[#240B36] bg-[#ffd447] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]">
-                print recipe
-              </button>
-              <button className="border-2 border-[#240B36] bg-[#fff3c7] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]">
-                cooking mode
-              </button>
-            </div>
-
-            <div className="mb-5 border-2 border-[#240B36] bg-[#fff3c7] p-4">
-              <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
-                servings scaler
-              </p>
-              <div className="mt-3 flex items-center gap-3">
-                <button className="h-10 w-10 border-2 border-[#240B36] bg-white text-xl font-black">
-                  -
-                </button>
-                <span className="text-3xl font-black">{recipe.servings}</span>
-                <button className="h-10 w-10 border-2 border-[#240B36] bg-white text-xl font-black">
-                  +
-                </button>
-              </div>
-            </div>
-
-            <h2 className="font-serif text-4xl font-black lowercase leading-[0.9]">
-              ingredients
-            </h2>
-            <ul className="mt-4 divide-y-2 divide-[#240B36] border-2 border-[#240B36] bg-[#fff3c7] p-4">
-              {recipe.ingredients?.map((ingredient) => (
-                <li
-                  key={ingredient._key}
-                  className="grid grid-cols-[5.5rem_1fr] gap-3 py-3 first:pt-0 last:pb-0"
-                >
-                  <span className="font-semibold">
-                    {formatIngredientAmount(ingredient.quantity, ingredient.unit)}
-                  </span>
-                  <span>
-                    <span className="font-normal">{ingredient.name}</span>
-                    {ingredient.note ? (
-                      <span className="block text-sm font-normal text-[#7b2418]">
-                        {ingredient.note}
-                      </span>
-                    ) : null}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </aside>
-
-          <div className="space-y-8">
-            {recipe.intro ? (
-              <section className="border-4 border-[#240B36] bg-[#ffd447] p-5">
-                <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
-                  why i love this
-                </p>
-                <p className="mt-3 text-xl font-normal leading-[2.025rem]">
-                  {recipe.intro}
-                </p>
-              </section>
-            ) : null}
-
-            <section>
-              <div className="mb-5 border-b-4 border-[#240B36] pb-4">
-                <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
-                  step by step
-                </p>
-                <h2 className="font-serif text-5xl font-black lowercase leading-[0.9]">
-                  method
-                </h2>
-              </div>
-              <ol className="space-y-5">
-                {recipe.methodSteps?.map((step, index) => (
-                  <li
-                    key={step._key}
-                    className="grid gap-4 border-4 border-[#240B36] bg-white p-5 md:grid-cols-[4.5rem_1fr]"
-                  >
-                    <span className="flex h-16 w-16 items-center justify-center border-2 border-[#240B36] bg-[#c7391f] text-3xl font-black text-[#fff3c7]">
-                      {index + 1}
-                    </span>
-                    <div className="text-lg font-normal leading-[1.8rem]">
-                      {step.content ? (
-                        <PortableText value={step.content} />
-                      ) : (
-                        getFirstBlockText(step.content)
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </section>
-
-            {recipe.tipsAndNotes?.length ? (
-              <section className="border-4 border-[#240B36] bg-[#e55224] p-5 text-[#fff3c7]">
-                <h2 className="font-serif text-4xl font-black lowercase leading-[0.9]">
-                  tips & notes
-                </h2>
-                <div className="mt-4 space-y-3 text-lg font-normal leading-[1.8rem]">
-                  <PortableText value={recipe.tipsAndNotes} />
-                </div>
-              </section>
-            ) : null}
-
-            <section className="grid gap-4 md:grid-cols-3">
-              {gallery.map((image) => (
-                <div
-                  key={image.src}
-                  className="relative min-h-64 border-4 border-[#240B36] bg-[#ffd447]"
-                >
-                  <Image
-                    src={image.src}
-                    alt={image.alt}
-                    fill
-                    sizes="(min-width: 768px) 30vw, 90vw"
-                    className="object-cover"
-                  />
-                </div>
-              ))}
-            </section>
-
-            <section className="border-4 border-[#240B36] bg-[#240B36] p-5 text-[#fff3c7]">
-              <p className="text-sm font-medium uppercase leading-[0.9] text-[#ffd447]">
-                tiktok
-              </p>
-              <div className="mt-4 flex min-h-64 items-center justify-center border-2 border-dashed border-[#ffd447] p-6 text-center">
-                <p className="max-w-md text-2xl font-normal">
-                  {recipe.tiktokUrl
-                    ? recipe.tiktokUrl
-                    : "TikTok embed appears here when the recipe has a video URL."}
-                </p>
-              </div>
-            </section>
-          </div>
-        </div>
-      </section>
+      <RecipeContent
+        baseServings={recipe.servings}
+        ingredients={recipe.ingredients}
+        methodSteps={recipe.methodSteps}
+        tipsAndNotes={recipe.tipsAndNotes}
+        gallery={gallery}
+        tiktokUrl={recipe.tiktokUrl}
+      />
     </main>
   );
 }
