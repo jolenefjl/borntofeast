@@ -71,6 +71,7 @@ function normalizeUnit(unit?: string) {
 export function ingredientQuantityToGrams(
   quantity: number | undefined,
   unit: string | undefined,
+  ingredientGramsPerUnit?: number,
 ) {
   if (typeof quantity !== "number" || quantity <= 0) {
     return null;
@@ -79,12 +80,16 @@ export function ingredientQuantityToGrams(
   const normalizedUnit = normalizeUnit(unit);
 
   if (!normalizedUnit) {
-    return null;
+    return ingredientGramsPerUnit ? quantity * ingredientGramsPerUnit : null;
   }
 
   const grams = gramsPerUnit[normalizedUnit];
 
-  return grams ? quantity * grams : null;
+  return grams
+    ? quantity * grams
+    : ingredientGramsPerUnit
+      ? quantity * ingredientGramsPerUnit
+      : null;
 }
 
 function roundMacro(value: number) {
@@ -101,6 +106,7 @@ export function calculateRecipeNutrition(
   }
 
   let matchedIngredients = 0;
+  let calculableIngredients = 0;
   const totals = {
     calories: 0,
     protein: 0,
@@ -109,8 +115,14 @@ export function calculateRecipeNutrition(
   };
 
   for (const ingredient of recipe.ingredients) {
-    if (!ingredient.filterKey) {
+    if (typeof ingredient.quantity !== "number" || ingredient.quantity <= 0) {
       continue;
+    }
+
+    calculableIngredients += 1;
+
+    if (!ingredient.filterKey) {
+      return null;
     }
 
     const nutrition = nutritionData[ingredient.filterKey];
@@ -120,10 +132,11 @@ export function calculateRecipeNutrition(
         (typeof ingredient.unitLabel === "object"
           ? ingredient.unitLabel?.en || ingredient.unitLabel?.no
           : ingredient.unitLabel),
+      nutrition?.gramsPerUnit,
     );
 
     if (!nutrition || !grams) {
-      continue;
+      return null;
     }
 
     const multiplier = grams / 100;
@@ -134,7 +147,7 @@ export function calculateRecipeNutrition(
     totals.fat += nutrition.fat * multiplier;
   }
 
-  if (matchedIngredients === 0) {
+  if (matchedIngredients === 0 || matchedIngredients !== calculableIngredients) {
     return null;
   }
 
