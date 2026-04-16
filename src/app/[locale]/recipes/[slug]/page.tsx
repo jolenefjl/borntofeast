@@ -3,6 +3,7 @@ import type {Metadata} from "next";
 import {notFound} from "next/navigation";
 
 import {SiteHeader} from "@/app/components/SiteHeader";
+import {getSiteChrome} from "@/app/components/siteChrome";
 import {RecipeContent} from "./RecipeContent";
 import {isLocale, type Locale} from "@/i18n/config";
 import {getDictionary} from "@/i18n/dictionaries";
@@ -46,6 +47,10 @@ type PortableBlock = {
 
 type Recipe = {
   title: LocalizedValue<string>;
+  cuisine?: {
+    name?: LocalizedValue<string>;
+    slug?: {current?: string};
+  };
   cuisineType: string;
   difficulty: string;
   prepTime: number;
@@ -66,6 +71,7 @@ type Recipe = {
     unit?: string;
     name: LocalizedValue<string>;
     note?: LocalizedValue<string>;
+    filterKey?: string;
   }[];
   methodSteps?: {
     _key: string;
@@ -77,6 +83,7 @@ type Recipe = {
 
 const recipeQuery = `*[_type == "recipe" && slug.current == $slug][0]{
   title,
+  cuisine->{name, slug},
   cuisineType,
   difficulty,
   prepTime,
@@ -93,6 +100,11 @@ const recipeQuery = `*[_type == "recipe" && slug.current == $slug][0]{
 
 function normalizeRecipe(recipe: Recipe, locale: Locale) {
   const title = resolveLocalizedString(recipe.title, locale);
+  const cuisineName = resolveLocalizedString(
+    recipe.cuisine?.name,
+    locale,
+    recipe.cuisineType,
+  );
   const intro = resolveLocalizedString(recipe.intro, locale);
   const tipsAndNotes = resolveLocalized<PortableBlock[]>(
     recipe.tipsAndNotes,
@@ -112,12 +124,14 @@ function normalizeRecipe(recipe: Recipe, locale: Locale) {
       unit: ingredient.unit,
       name: resolveLocalizedString(ingredient.name, locale),
       note: resolveLocalizedString(ingredient.note, locale),
+      filterKey: ingredient.filterKey,
     }))
     .filter((ingredient) => ingredient.name);
 
   return {
     ...recipe,
     title,
+    cuisineName,
     intro,
     tipsAndNotes,
     methodSteps,
@@ -144,7 +158,11 @@ export async function generateMetadata({
   const {locale: localeParam, slug} = await params;
   const locale = isLocale(localeParam) ? localeParam : "en";
   const dictionary = getDictionary(locale);
-  const recipe = await client.fetch<Recipe | null>(recipeQuery, {slug});
+  const recipe = await client.fetch<Recipe | null>(
+    recipeQuery,
+    {slug},
+    {cache: "no-store"},
+  );
 
   if (!recipe) {
     notFound();
@@ -173,9 +191,14 @@ export default async function RecipePage({params}: RecipePageProps) {
   const {locale: localeParam, slug} = await params;
   const locale = isLocale(localeParam) ? localeParam : "en";
   const dictionary = getDictionary(locale);
-  const recipe = await client.fetch<Recipe | null>(recipeQuery, {
-    slug,
-  });
+  const [recipe, chrome] = await Promise.all([
+    client.fetch<Recipe | null>(
+      recipeQuery,
+      {slug},
+      {cache: "no-store"},
+    ),
+    getSiteChrome(locale, dictionary),
+  ]);
 
   if (!recipe) {
     notFound();
@@ -208,7 +231,7 @@ export default async function RecipePage({params}: RecipePageProps) {
     name: normalizedRecipe.title,
     description: normalizedRecipe.intro,
     image: [heroImage],
-    recipeCuisine: normalizedRecipe.cuisineType,
+    recipeCuisine: normalizedRecipe.cuisineName,
     prepTime: minutesToDuration(normalizedRecipe.prepTime),
     cookTime: minutesToDuration(normalizedRecipe.cookTime),
     totalTime: minutesToDuration(totalTime),
@@ -227,11 +250,15 @@ export default async function RecipePage({params}: RecipePageProps) {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#fff3c7] text-[#240B36]">
-      <SiteHeader locale={locale} labels={dictionary.nav} />
-      <section className="border-b-4 border-[#240B36] bg-[#e55224] px-4 py-10 sm:px-8 lg:py-20">
+      <SiteHeader
+        locale={locale}
+        labels={dictionary.nav}
+        navigationItems={chrome.navigationItems}
+      />
+      <section className="border-b-4 border-[#240B36] bg-[#e55224] px-4 py-8 sm:px-8 sm:py-10 lg:py-20">
         <div className="mx-auto max-w-7xl">
-          <div className="grid gap-8 lg:grid-cols-[0.78fr_1fr] lg:items-center">
-            <div className="relative min-h-[28rem] border-4 border-[#240B36] bg-[#ffd447] p-3 shadow-[8px_8px_0_#240B36] sm:min-h-[38rem] lg:min-h-[44rem]">
+          <div className="grid gap-7 lg:grid-cols-[0.78fr_1fr] lg:items-center">
+            <div className="relative min-h-[22rem] border-4 border-[#240B36] bg-[#ffd447] p-2 shadow-[6px_6px_0_#240B36] sm:min-h-[38rem] sm:p-3 sm:shadow-[8px_8px_0_#240B36] lg:min-h-[44rem]">
               <Image
                 src={heroImage}
                 alt={heroAlt}
@@ -243,17 +270,17 @@ export default async function RecipePage({params}: RecipePageProps) {
             </div>
 
             <div className="min-w-0">
-              <p className="mb-4 inline-flex border-2 border-[#240B36] bg-[#ffd447] px-3 py-2 text-sm font-medium uppercase leading-[0.9]">
-                {normalizedRecipe.cuisineType} |{" "}
+              <p className="mb-4 inline-flex max-w-full flex-wrap gap-x-1 gap-y-1 border-2 border-[#240B36] bg-[#ffd447] px-3 py-2 text-xs font-medium uppercase leading-[1.1] sm:text-sm sm:leading-[0.9]">
+                {normalizedRecipe.cuisineName} |{" "}
                 {dictionary.recipe.difficultyLabels[normalizedRecipe.difficulty as keyof typeof dictionary.recipe.difficultyLabels] ??
                   normalizedRecipe.difficulty}{" "}
                 | {totalTime} min
               </p>
-              <h1 className="font-serif text-5xl font-black lowercase leading-[0.9] text-[#fff3c7] sm:text-7xl lg:text-8xl">
+              <h1 className="font-serif text-4xl font-black lowercase leading-[0.95] text-[#fff3c7] sm:text-7xl sm:leading-[0.9] lg:text-8xl">
                 {normalizedRecipe.title}
               </h1>
               {normalizedRecipe.intro ? (
-                <p className="mt-6 max-w-2xl text-xl font-normal leading-[1.8rem] text-[#fff3c7]">
+                <p className="mt-5 max-w-prose text-lg font-normal leading-[1.65rem] text-[#fff3c7] sm:mt-6 sm:text-xl sm:leading-[1.8rem]">
                   {normalizedRecipe.intro}
                 </p>
               ) : null}
@@ -262,8 +289,8 @@ export default async function RecipePage({params}: RecipePageProps) {
         </div>
       </section>
 
-      <section className="bg-[#ffd447] px-5 py-8 sm:px-8">
-        <div className="mx-auto grid max-w-7xl gap-3 text-sm font-medium uppercase leading-[0.9] sm:grid-cols-2 lg:grid-cols-5">
+      <section className="bg-[#ffd447] px-4 py-6 sm:px-8 sm:py-8">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2 text-xs font-medium uppercase leading-[1] sm:grid-cols-2 sm:gap-3 sm:text-sm sm:leading-[0.9] lg:grid-cols-5">
           {[
             [dictionary.recipe.prep, `${normalizedRecipe.prepTime} min`],
             [dictionary.recipe.cook, `${normalizedRecipe.cookTime} min`],
@@ -274,14 +301,14 @@ export default async function RecipePage({params}: RecipePageProps) {
                 normalizedRecipe.difficulty as keyof typeof dictionary.recipe.difficultyLabels
               ] ?? normalizedRecipe.difficulty,
             ],
-            [dictionary.recipe.cuisine, normalizedRecipe.cuisineType],
+            [dictionary.recipe.cuisine, normalizedRecipe.cuisineName],
           ].map(([label, value]) => (
             <div
               key={label}
-              className="border-2 border-[#240B36] bg-[#fff3c7] p-4"
+              className="border-2 border-[#240B36] bg-[#fff3c7] p-3 sm:p-4"
             >
               <p className="text-[#c7391f]">{label}</p>
-              <p className="mt-1 text-2xl text-[#240B36]">{value}</p>
+              <p className="mt-1 text-xl text-[#240B36] sm:text-2xl">{value}</p>
             </div>
           ))}
         </div>

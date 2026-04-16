@@ -16,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       "updatedAt": _updatedAt
     }`,
   );
-  const staticPaths = ["", "/about", "/search"];
+  const staticPaths = ["", "/about", "/recipes", "/search"];
   const staticEntries = locales.flatMap((locale) =>
     staticPaths.map((path) => ({
       url: absoluteUrl(`/${locale}${path}`),

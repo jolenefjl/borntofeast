@@ -97,7 +97,7 @@ function IngredientRows({
       className={
         compact
           ? "mt-4 grid gap-2 border-2 border-[#240B36] bg-[#fff3c7] p-3 text-base"
-          : "mt-4 divide-y-2 divide-[#240B36] border-2 border-[#240B36] bg-[#fff3c7] p-4"
+          : "mt-4 divide-y-2 divide-[#240B36] border-2 border-[#240B36] bg-[#fff3c7] p-3 sm:p-4"
       }
     >
       {ingredients.map((ingredient) => (
@@ -106,10 +106,10 @@ function IngredientRows({
           className={
             compact
               ? "grid grid-cols-[minmax(4.5rem,0.32fr)_1fr] gap-3"
-              : "grid grid-cols-[minmax(4.75rem,0.34fr)_1fr] gap-3 py-3 first:pt-0 last:pb-0"
+              : "grid gap-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-[minmax(4.75rem,0.34fr)_1fr] sm:gap-3"
           }
         >
-          <span className="font-semibold">
+          <span className="font-semibold text-[#7b2418] sm:text-[#240B36]">
             {formatIngredientAmount(ingredient.quantity, ingredient.unit, scale)}
           </span>
           <span>
@@ -162,7 +162,7 @@ function TikTokEmbed({
 
   if (!url) {
     return (
-      <p className="max-w-md text-2xl font-normal">
+      <p className="max-w-md text-xl font-normal leading-[1.6rem] sm:text-2xl">
         {fallback}
       </p>
     );
@@ -172,8 +172,9 @@ function TikTokEmbed({
 
   return (
     <blockquote
-      className="tiktok-embed mx-auto min-w-0 max-w-full bg-[#fff3c7] text-[#240B36]"
+      className="tiktok-embed mx-auto min-w-0 max-w-[325px] bg-[#fff3c7] text-[#240B36]"
       cite={url}
+      style={{minWidth: 0, width: "100%", maxWidth: 325}}
       {...(videoId ? {"data-video-id": videoId} : {})}
     >
       <section>
@@ -196,14 +197,14 @@ export function RecipeContent({
   const scale = useMemo(() => servings / baseServings, [servings, baseServings]);
 
   return (
-    <section className="bg-[#fff3c7] px-4 py-12 sm:px-8 sm:py-14">
-      <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.85fr_1.15fr]">
+    <section className="bg-[#fff3c7] px-4 py-10 sm:px-8 sm:py-14">
+      <div className="mx-auto grid max-w-7xl gap-7 lg:grid-cols-[0.85fr_1.15fr]">
         <aside className="h-fit min-w-0 border-4 border-[#240B36] bg-[#f77f1f] p-4 shadow-[6px_6px_0_#240B36] sm:p-5 sm:shadow-[8px_8px_0_#240B36] lg:sticky lg:top-28">
-          <div className="mb-5 flex flex-wrap gap-3">
-            <button className="border-2 border-[#240B36] bg-[#ffd447] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]">
+          <div className="mb-5 grid gap-3 sm:flex sm:flex-wrap">
+            <button className="min-h-11 border-2 border-[#240B36] bg-[#ffd447] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]">
               {dictionary.printRecipe}
             </button>
-            <button className="border-2 border-[#240B36] bg-[#fff3c7] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]">
+            <button className="min-h-11 border-2 border-[#240B36] bg-[#fff3c7] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]">
               {dictionary.cookingMode}
             </button>
           </div>
@@ -215,7 +216,7 @@ export function RecipeContent({
             <div className="mt-3 flex items-center gap-3">
               <button
                 type="button"
-                className="h-10 w-10 border-2 border-[#240B36] bg-white text-xl font-black"
+                className="h-11 w-11 border-2 border-[#240B36] bg-white text-xl font-black"
                 onClick={() => setServings((current) => Math.max(1, current - 1))}
                 aria-label="Decrease servings"
               >
@@ -226,7 +227,7 @@ export function RecipeContent({
               </span>
               <button
                 type="button"
-                className="h-10 w-10 border-2 border-[#240B36] bg-white text-xl font-black"
+                className="h-11 w-11 border-2 border-[#240B36] bg-white text-xl font-black"
                 onClick={() => setServings((current) => current + 1)}
                 aria-label="Increase servings"
               >
@@ -235,32 +236,32 @@ export function RecipeContent({
             </div>
           </div>
 
-          <h2 className="font-serif text-4xl font-black lowercase leading-[0.9]">
+          <h2 className="font-serif text-3xl font-black lowercase leading-[0.95] sm:text-4xl sm:leading-[0.9]">
             {dictionary.ingredients}
           </h2>
           <IngredientRows ingredients={ingredients} scale={scale} />
         </aside>
 
-        <div className="min-w-0 space-y-8">
+        <div className="min-w-0 space-y-7 sm:space-y-8">
           <section>
             <div className="mb-5">
               <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
                 {dictionary.methodEyebrow}
               </p>
-              <h2 className="font-serif text-5xl font-black lowercase leading-[0.9]">
+              <h2 className="font-serif text-4xl font-black lowercase leading-[0.95] sm:text-5xl sm:leading-[0.9]">
                 {dictionary.method}
               </h2>
             </div>
-            <ol className="border-4 border-[#240B36] bg-white p-4 shadow-[6px_6px_0_#240B36] sm:p-6 sm:shadow-[8px_8px_0_#240B36]">
+            <ol className="bg-white p-4 shadow-[5px_5px_0_#240B36] sm:p-6 sm:shadow-[8px_8px_0_#240B36]">
               {methodSteps?.map((step, index) => (
                 <li
                   key={step._key}
-                  className="grid gap-4 border-b-2 border-[#240B36] py-6 first:pt-0 last:border-b-0 last:pb-0 md:grid-cols-[2.5rem_1fr]"
+                  className="grid gap-3 py-5 first:pt-0 last:pb-0 sm:gap-4 sm:py-6 md:grid-cols-[2rem_1fr]"
                 >
-                  <span className="flex h-9 w-9 items-center justify-center border-2 border-[#240B36] bg-[#c7391f] text-base font-black text-[#fff3c7]">
+                  <span className="flex h-7 w-7 items-center justify-center border-2 border-[#240B36] bg-[#c7391f] text-sm font-black text-[#fff3c7]">
                     {index + 1}
                   </span>
-                  <div className="min-w-0 text-lg font-normal leading-[1.8rem]">
+                  <div className="min-w-0 max-w-prose text-base font-normal leading-[1.65rem] sm:text-lg sm:leading-[1.8rem]">
                     {step.content ? <PortableText value={step.content} /> : null}
                   </div>
                 </li>
@@ -269,11 +270,11 @@ export function RecipeContent({
           </section>
 
           {tipsAndNotes?.length ? (
-            <section className="border-4 border-[#240B36] bg-[#e55224] p-5 text-[#fff3c7]">
-              <h2 className="font-serif text-4xl font-black lowercase leading-[0.9]">
+            <section className="border-4 border-[#240B36] bg-[#e55224] p-4 text-[#fff3c7] sm:p-5">
+              <h2 className="font-serif text-3xl font-black lowercase leading-[0.95] sm:text-4xl sm:leading-[0.9]">
                 {dictionary.tipsNotes}
               </h2>
-              <div className="mt-4 space-y-3 text-lg font-normal leading-[1.8rem]">
+              <div className="mt-4 max-w-prose space-y-3 text-base font-normal leading-[1.65rem] sm:text-lg sm:leading-[1.8rem]">
                 <PortableText value={tipsAndNotes} />
               </div>
             </section>
@@ -283,7 +284,7 @@ export function RecipeContent({
             {gallery.map((image) => (
               <div
                 key={image.src}
-                className="relative min-h-64 border-4 border-[#240B36] bg-[#ffd447]"
+                className="relative aspect-[4/3] min-h-0 border-4 border-[#240B36] bg-[#ffd447]"
               >
                 <Image
                   src={image.src}
@@ -296,11 +297,11 @@ export function RecipeContent({
             ))}
           </section>
 
-          <section className="border-4 border-[#240B36] bg-[#240B36] p-5 text-[#fff3c7]">
+          <section className="border-4 border-[#240B36] bg-[#240B36] p-4 text-[#fff3c7] sm:p-5">
             <p className="text-sm font-medium uppercase leading-[0.9] text-[#ffd447]">
               {dictionary.tiktok}
             </p>
-            <div className="mt-4 flex min-h-64 min-w-0 items-center justify-center overflow-hidden border-2 border-dashed border-[#ffd447] p-4 text-center sm:p-6">
+            <div className="mt-4 flex min-h-[32rem] min-w-0 items-start justify-center overflow-hidden border-2 border-dashed border-[#ffd447] p-3 text-center sm:min-h-[36rem] sm:p-6">
               <TikTokEmbed
                 url={tiktokUrl}
                 fallback={dictionary.tiktokFallback}

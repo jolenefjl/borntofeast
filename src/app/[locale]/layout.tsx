@@ -3,9 +3,13 @@ import {Afacad, Fraunces} from "next/font/google";
 import {notFound} from "next/navigation";
 
 import "../globals.css";
+import {SiteFooter} from "@/app/components/SiteFooter";
+import {getSiteChrome} from "@/app/components/siteChrome";
 import {getDictionary} from "@/i18n/dictionaries";
 import {isLocale, locales, type Locale} from "@/i18n/config";
 import {absoluteUrl, localeAlternates} from "@/i18n/urls";
+
+export const dynamic = "force-dynamic";
 
 const afacad = Afacad({
   variable: "--font-afacad",
@@ -63,13 +67,18 @@ export default async function LocaleLayout({
   }
 
   const locale: Locale = localeParam;
+  const dictionary = getDictionary(locale);
+  const chrome = await getSiteChrome(locale, dictionary);
 
   return (
     <html
       lang={locale}
       className={`${afacad.variable} ${fraunces.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <SiteFooter footer={chrome.footer} />
+      </body>
     </html>
   );
 }

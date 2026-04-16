@@ -55,6 +55,26 @@ export const no = {
       "Deep Dive": "Dypdykk",
     },
   },
+  recipes: {
+    metaTitle: "Oppskrifter",
+    metaDescription:
+      "Utforsk Born to Feast-oppskrifter etter kjokken, vanskelighet, tid og ingrediens.",
+    eyebrow: "oppskriftsboks",
+    title: "finn neste feast.",
+    intro:
+      "Filtrer etter kjokken, innsats, tid eller ingrediensen som allerede ligger i kjoleskapet.",
+    all: "alle",
+    filters: "filtre",
+    cuisine: "kjokken",
+    difficulty: "vanskelighet",
+    totalTime: "total tid",
+    ingredient: "ingrediens",
+    clearFilters: "nullstill filtre",
+    under30: "under 30 min",
+    under60: "under 60 min",
+    over60: "over 60 min",
+    noResults: "Ingen oppskrifter matcher filtrene enna.",
+  },
   about: {
     metaTitle: "Om Born to Feast",
     metaDescription:

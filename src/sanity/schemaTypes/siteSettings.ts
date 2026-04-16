@@ -16,6 +16,16 @@ export const siteSettingsType = defineType({
       options: {collapsible: true, collapsed: false},
     },
     {
+      name: "headerNavigation",
+      title: "Header navigation",
+      options: {collapsible: true, collapsed: false},
+    },
+    {
+      name: "footer",
+      title: "Footer",
+      options: {collapsible: true, collapsed: false},
+    },
+    {
       name: "homepageRecipes",
       title: "Homepage recipes section",
       options: {collapsible: true, collapsed: false},
@@ -77,6 +87,133 @@ export const siteSettingsType = defineType({
       ],
     }),
     defineField({
+      name: "headerNavigationItems",
+      title: "Header navigation items",
+      description:
+        "Manage the top navigation here. Use internal paths without locale prefixes, for example /recipes or /about. Labels are localized.",
+      type: "array",
+      fieldset: "headerNavigation",
+      of: [
+        defineArrayMember({
+          name: "navigationItem",
+          title: "Navigation item",
+          type: "object",
+          fields: [
+            localizedStringField("label", "Label"),
+            defineField({
+              name: "href",
+              title: "Link",
+              description:
+                "Internal path such as /recipes, /about, /search, or an external URL.",
+              type: "string",
+              validation: (rule) => rule.required(),
+            }),
+            defineField({
+              name: "linkType",
+              title: "Link type",
+              type: "string",
+              initialValue: "internal",
+              options: {
+                list: [
+                  {title: "Internal", value: "internal"},
+                  {title: "External", value: "external"},
+                ],
+                layout: "radio",
+              },
+              validation: (rule) => rule.required(),
+            }),
+            defineField({
+              name: "enabled",
+              title: "Enabled",
+              type: "boolean",
+              initialValue: true,
+            }),
+            defineField({
+              name: "openInNewTab",
+              title: "Open in new tab",
+              type: "boolean",
+              initialValue: false,
+            }),
+          ],
+          preview: {
+            select: {
+              title: "label.en",
+              subtitle: "href",
+            },
+          },
+        }),
+      ],
+    }),
+    localizedTextField("footerIntro", "Footer intro", {
+      rows: 3,
+      fieldset: "footer",
+    }),
+    localizedStringField("footerNewsletterHeading", "Footer newsletter heading", {
+      fieldset: "footer",
+    }),
+    localizedStringField("footerNewsletterCtaLabel", "Footer newsletter CTA label", {
+      fieldset: "footer",
+    }),
+    defineField({
+      name: "footerNewsletterHref",
+      title: "Footer newsletter link",
+      type: "string",
+      fieldset: "footer",
+    }),
+    defineField({
+      name: "footerLinks",
+      title: "Footer links",
+      type: "array",
+      fieldset: "footer",
+      of: [
+        defineArrayMember({
+          name: "footerLink",
+          title: "Footer link",
+          type: "object",
+          fields: [
+            localizedStringField("label", "Label"),
+            defineField({
+              name: "href",
+              title: "Link",
+              type: "string",
+              validation: (rule) => rule.required(),
+            }),
+            defineField({
+              name: "linkType",
+              title: "Link type",
+              type: "string",
+              initialValue: "internal",
+              options: {
+                list: [
+                  {title: "Internal", value: "internal"},
+                  {title: "External", value: "external"},
+                ],
+                layout: "radio",
+              },
+            }),
+            defineField({
+              name: "enabled",
+              title: "Enabled",
+              type: "boolean",
+              initialValue: true,
+            }),
+            defineField({
+              name: "openInNewTab",
+              title: "Open in new tab",
+              type: "boolean",
+              initialValue: false,
+            }),
+          ],
+          preview: {
+            select: {
+              title: "label.en",
+              subtitle: "href",
+            },
+          },
+        }),
+      ],
+    }),
+    defineField({
       name: "featuredRecipes",
       title: "Homepage featured recipes",
       type: "array",
@@ -108,6 +245,15 @@ export const siteSettingsType = defineType({
       fieldset: "homepageCategories",
     }),
     localizedStringField("homepageCategoriesHeading", "Categories heading", {
+      fieldset: "homepageCategories",
+    }),
+    defineField({
+      name: "showHomepageCategories",
+      title: "Show homepage cuisines/cravings section",
+      description:
+        "Disable this until there are enough recipes for the section to be useful.",
+      type: "boolean",
+      initialValue: false,
       fieldset: "homepageCategories",
     }),
     defineField({

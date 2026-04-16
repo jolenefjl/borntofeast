@@ -55,6 +55,26 @@ export const en = {
       "Deep Dive": "Deep Dive",
     },
   },
+  recipes: {
+    metaTitle: "Recipes",
+    metaDescription:
+      "Browse Born to Feast recipes by cuisine, difficulty, total time, and ingredient.",
+    eyebrow: "recipe box",
+    title: "find your next feast.",
+    intro:
+      "Filter by cuisine, effort, time, or the ingredient already waiting in your fridge.",
+    all: "all",
+    filters: "filters",
+    cuisine: "cuisine",
+    difficulty: "difficulty",
+    totalTime: "total time",
+    ingredient: "ingredient",
+    clearFilters: "clear filters",
+    under30: "under 30 min",
+    under60: "under 60 min",
+    over60: "over 60 min",
+    noResults: "No recipes match those filters yet.",
+  },
   about: {
     metaTitle: "About Born to Feast",
     metaDescription:

@@ -30,6 +30,7 @@ const ingredientFields = [
   defineField({
     name: "name",
     title: "Ingredient name",
+    description: "The display name shown in the recipe, localized for readers.",
     type: "object",
     fields: [
       defineField({name: "en", title: "English", type: "string"}),
@@ -39,11 +40,27 @@ const ingredientFields = [
   defineField({
     name: "note",
     title: "Optional note",
+    description: "Optional display note, for example finely sliced or toasted.",
     type: "object",
     fields: [
       defineField({name: "en", title: "English", type: "string"}),
       defineField({name: "no", title: "Norwegian", type: "string"}),
     ],
+  }),
+  defineField({
+    name: "filterKey",
+    title: "Ingredient filter key",
+    description:
+      "Normalized ingredient identifier for recipe filtering. Use lowercase singular slugs such as spring-onion, soy-sauce, kimchi, egg. Keep this stable even if display names change.",
+    type: "string",
+    validation: (rule) =>
+      rule
+        .required()
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+          name: "slug",
+          invert: false,
+        })
+        .error("Use lowercase letters/numbers separated by hyphens."),
   }),
 ];
 
@@ -52,11 +69,13 @@ function prepareIngredientPreview({
   unit,
   title,
   note,
+  filterKey,
 }: {
   quantity?: number;
   unit?: string;
   title?: string | {en?: string; no?: string};
   note?: string | {en?: string; no?: string};
+  filterKey?: string;
 }) {
   const amount = [quantity, unit].filter(Boolean).join(" ");
   const resolvedTitle = typeof title === "object" ? title.en : title;
@@ -64,7 +83,7 @@ function prepareIngredientPreview({
 
   return {
     title: [amount, resolvedTitle].filter(Boolean).join(" "),
-    subtitle: resolvedNote,
+    subtitle: [filterKey, resolvedNote].filter(Boolean).join(" | "),
   };
 }
 
@@ -85,8 +104,18 @@ export const recipeType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: "cuisine",
+      title: "Cuisine",
+      description:
+        "Preferred for filtering and editor-friendly taxonomy. Keep the legacy cuisine type filled until existing content is migrated.",
+      type: "reference",
+      to: [{type: "cuisine"}],
+    }),
+    defineField({
       name: "cuisineType",
-      title: "Cuisine type",
+      title: "Legacy cuisine type",
+      description:
+        "Legacy fixed dropdown used as a fallback while cuisine references are being migrated.",
       type: "string",
       options: {
         list: cuisineOptions.map((title) => ({title, value: title})),
@@ -186,6 +215,7 @@ export const recipeType = defineType({
               unit: "unit",
               title: "name",
               note: "note",
+              filterKey: "filterKey",
             },
             prepare: prepareIngredientPreview,
           },
@@ -239,7 +269,7 @@ export const recipeType = defineType({
       name: "tags",
       title: "Tags",
       description:
-        "Use lowercase practical tags such as quick, vegetarian, noodles, rice, spicy, pantry, weeknight, comfort, deep-dive. Keep tags consistent so filters work later.",
+        "Optional editorial tags for mood, format, diet, or practical use. Tags are not cuisine (use Cuisine), not difficulty (use Difficulty), and not ingredients (use ingredient filter keys). Use lowercase hyphenated tags such as weeknight, comfort-food, one-pot, spicy, vegetarian.",
       type: "array",
       of: [defineArrayMember({type: "string"})],
       options: {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type {Metadata} from "next";
 
 import {SiteHeader} from "@/app/components/SiteHeader";
+import {getSiteChrome} from "@/app/components/siteChrome";
 import {isLocale, localizedPath, type Locale} from "@/i18n/config";
 import {getDictionary} from "@/i18n/dictionaries";
 import {resolveLocalizedString, type LocalizedValue} from "@/i18n/localized";
@@ -104,6 +105,7 @@ type SiteSettings = {
   homepageRecipesCtaHref?: string;
   homepageCategoriesEyebrow?: LocalizedValue<string>;
   homepageCategoriesHeading?: LocalizedValue<string>;
+  showHomepageCategories?: boolean;
   homepageCategoryCards?: CategoryCard[];
   homepageAboutEyebrow?: LocalizedValue<string>;
   homepageAboutHeading?: LocalizedValue<string>;
@@ -123,7 +125,7 @@ type RecipeCard = {
   title?: LocalizedValue<string>;
   href?: string;
   slug?: string;
-  cuisine?: string;
+  cuisine?: LocalizedValue<string>;
   difficulty?: string;
   time?: string;
   prepTime?: number;
@@ -165,9 +167,10 @@ const homepageQuery = `{
     homepageRecipesHeading,
     homepageRecipesCtaLabel,
     homepageRecipesCtaHref,
-    homepageCategoriesEyebrow,
-    homepageCategoriesHeading,
-    homepageCategoryCards,
+  homepageCategoriesEyebrow,
+  homepageCategoriesHeading,
+  showHomepageCategories,
+  homepageCategoryCards,
     homepageAboutEyebrow,
     homepageAboutHeading,
     homepageAboutText,
@@ -178,7 +181,7 @@ const homepageQuery = `{
     featuredRecipes[]->{
       title,
       "slug": slug.current,
-      "cuisine": cuisineType,
+      "cuisine": coalesce(cuisine->name, cuisineType),
       difficulty,
       prepTime,
       cookTime,
@@ -189,7 +192,7 @@ const homepageQuery = `{
   "featuredRecipes": *[_type == "recipe" && featured == true] | order(publishedAt desc)[0...4]{
     title,
     "slug": slug.current,
-    "cuisine": cuisineType,
+    "cuisine": coalesce(cuisine->name, cuisineType),
     difficulty,
     prepTime,
     cookTime,
@@ -268,8 +271,13 @@ export default async function Home({
   const {locale: localeParam} = await params;
   const locale = isLocale(localeParam) ? localeParam : "en";
   const dictionary = getDictionary(locale);
-  const {settings, featuredRecipes: sanityFeaturedRecipes} =
-    await client.fetch<HomepageData>(homepageQuery);
+  const [
+    {settings, featuredRecipes: sanityFeaturedRecipes},
+    chrome,
+  ] = await Promise.all([
+    client.fetch<HomepageData>(homepageQuery, {}, {cache: "no-store"}),
+    getSiteChrome(locale, dictionary),
+  ]);
   const heroLines = settings
     ? [
         resolveLocalizedString(settings.homepageHeroLine1, locale),
@@ -325,7 +333,7 @@ export default async function Home({
     settings?.homepageRecipesCtaLabel,
     dictionary.homepage.recipesCtaLabel,
   );
-  const recipesCtaHref = settings?.homepageRecipesCtaHref ?? "#newsletter";
+  const recipesCtaHref = settings?.homepageRecipesCtaHref ?? "/recipes";
   const categoriesEyebrow = getSetting(
     locale,
     settings?.homepageCategoriesEyebrow,
@@ -374,20 +382,24 @@ export default async function Home({
 
   return (
     <main className="min-h-screen bg-[#c7391f] text-[#240B36]">
-      <SiteHeader locale={locale} labels={dictionary.nav} />
+      <SiteHeader
+        locale={locale}
+        labels={dictionary.nav}
+        navigationItems={chrome.navigationItems}
+      />
       <section className="relative isolate overflow-hidden border-b-4 border-[#240B36] bg-[#e55224]">
         <div className="absolute inset-0 -z-10 opacity-25 bg-[linear-gradient(90deg,#240B36_1px,transparent_1px),linear-gradient(#240B36_1px,transparent_1px)] bg-[size:42px_42px]" />
-        <div className="mx-auto flex min-h-[88vh] max-w-7xl px-5 pb-20 pt-6 sm:px-8 sm:pb-28 lg:pb-32 lg:pt-10">
+        <div className="mx-auto flex min-h-[72vh] max-w-7xl px-4 pb-14 pt-4 sm:min-h-[88vh] sm:px-8 sm:pb-28 lg:pb-32 lg:pt-10">
           <div className="flex w-full flex-col gap-6">
             <div
               className={
                 heroPortrait
-                  ? "mt-16 grid max-w-6xl gap-8 sm:mt-24 lg:mt-28 lg:grid-cols-[minmax(220px,0.38fr)_1fr] lg:items-center"
-                  : "mt-16 max-w-6xl sm:mt-24 lg:mt-28"
+                  ? "mt-10 grid max-w-6xl gap-6 sm:mt-24 sm:gap-8 lg:mt-28 lg:grid-cols-[minmax(220px,0.38fr)_1fr] lg:items-center"
+                  : "mt-10 max-w-6xl sm:mt-24 lg:mt-28"
               }
             >
               {heroPortrait ? (
-                <div className="relative min-h-[22rem] border-4 border-[#240B36] bg-[#ffd447] shadow-[8px_8px_0_#240B36] lg:h-full lg:min-h-0">
+                <div className="relative min-h-[18rem] border-4 border-[#240B36] bg-[#ffd447] shadow-[6px_6px_0_#240B36] sm:min-h-[22rem] sm:shadow-[8px_8px_0_#240B36] lg:h-full lg:min-h-0">
                   <Image
                     src={heroPortrait.src}
                     alt={heroPortrait.alt}
@@ -401,7 +413,7 @@ export default async function Home({
 
               <div>
                 {heroLines.length ? (
-                  <h1 className="font-serif text-6xl font-bold lowercase leading-[0.9] sm:text-7xl lg:text-8xl">
+                  <h1 className="font-serif text-5xl font-bold lowercase leading-[0.95] sm:text-7xl sm:leading-[0.9] lg:text-8xl">
                     {heroLines.map((line, index) => (
                       <span key={`${line}-${index}`} className="block">
                         {line}
@@ -410,14 +422,14 @@ export default async function Home({
                   </h1>
                 ) : null}
                 {hasText(heroIntro) ? (
-                  <p className="mt-6 max-w-2xl text-xl font-normal leading-[1.8rem]">
+                  <p className="mt-5 max-w-prose text-lg font-normal leading-[1.65rem] sm:mt-6 sm:text-xl sm:leading-[1.8rem]">
                     {heroIntro}
                   </p>
                 ) : null}
                 {hasText(heroCtaLabel) && hasText(heroCtaHref) ? (
                   <a
                     href={localizeHref(locale, heroCtaHref)}
-                    className="mt-8 inline-flex border-2 border-[#240B36] bg-[#ffd447] px-6 py-3 text-sm font-black uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]"
+                    className="mt-7 inline-flex min-h-11 items-center border-2 border-[#240B36] bg-[#ffd447] px-5 py-3 text-sm font-black uppercase leading-[0.9] shadow-[4px_4px_0_#240B36] sm:mt-8 sm:px-6"
                   >
                     {heroCtaLabel}
                   </a>
@@ -430,10 +442,10 @@ export default async function Home({
 
       <section
         id="recipes"
-        className="bg-[#fff3c7] px-5 py-20 sm:px-8 sm:py-28 lg:py-32"
+        className="bg-[#fff3c7] px-4 py-14 sm:px-8 sm:py-28 lg:py-32"
       >
         <div className="mx-auto max-w-7xl">
-          <div className="mb-8 flex flex-col justify-between gap-4 border-b-4 border-[#240B36] pb-5 md:flex-row md:items-end">
+          <div className="mb-6 flex flex-col justify-between gap-4 border-b-4 border-[#240B36] pb-5 sm:mb-8 md:flex-row md:items-end">
             <div>
               {hasText(recipesEyebrow) ? (
                 <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
@@ -441,7 +453,7 @@ export default async function Home({
                 </p>
               ) : null}
               {hasText(recipesHeading) ? (
-                <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
+                <h2 className="font-serif text-4xl font-black lowercase leading-[0.95] sm:text-6xl sm:leading-[0.9]">
                   {recipesHeading}
                 </h2>
               ) : null}
@@ -449,7 +461,7 @@ export default async function Home({
             {hasText(recipesCtaLabel) && hasText(recipesCtaHref) ? (
               <a
                 href={localizeHref(locale, recipesCtaHref)}
-                className="inline-flex w-fit border-2 border-[#240B36] bg-[#ffd447] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]"
+                className="inline-flex min-h-11 w-fit items-center border-2 border-[#240B36] bg-[#ffd447] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]"
               >
                 {recipesCtaLabel}
               </a>
@@ -490,7 +502,7 @@ export default async function Home({
               <Link
                 key={title}
                 href={localizeHref(locale, href)}
-                className="group block border-4 border-[#240B36] bg-[#f77f1f] shadow-[8px_8px_0_#240B36] transition duration-200 hover:-translate-y-2 hover:shadow-[12px_12px_0_#240B36]"
+                className="group block border-4 border-[#240B36] bg-[#f77f1f] shadow-[6px_6px_0_#240B36] transition duration-200 hover:-translate-y-2 hover:shadow-[12px_12px_0_#240B36] sm:shadow-[8px_8px_0_#240B36]"
               >
                 <div className="relative aspect-[4/3] overflow-hidden border-b-4 border-[#240B36]">
                   <Image
@@ -501,11 +513,11 @@ export default async function Home({
                     className="object-cover transition duration-300 group-hover:scale-105"
                   />
                 </div>
-                <div className="p-5">
+                <div className="p-4 sm:p-5">
                   <div className="mb-4 flex flex-wrap gap-2 text-xs font-medium uppercase leading-[0.9]">
-                    {recipe.cuisine ? (
+                    {resolveLocalizedString(recipe.cuisine, locale) ? (
                       <span className="border-2 border-[#240B36] bg-[#fff3c7] px-2 py-1">
-                        {recipe.cuisine}
+                        {resolveLocalizedString(recipe.cuisine, locale)}
                       </span>
                     ) : null}
                     {recipe.difficulty ? (
@@ -519,11 +531,11 @@ export default async function Home({
                       </span>
                     ) : null}
                   </div>
-                  <h3 className="text-3xl font-black lowercase leading-[1.8rem]">
+                  <h3 className="text-2xl font-black lowercase leading-[1.65rem] sm:text-3xl sm:leading-[1.8rem]">
                     {title}
                   </h3>
                   {description ? (
-                    <p className="mt-4 text-base font-normal leading-[1.575rem]">
+                    <p className="mt-3 text-base font-normal leading-[1.575rem] sm:mt-4">
                       {description}
                     </p>
                   ) : null}
@@ -535,9 +547,10 @@ export default async function Home({
         </div>
       </section>
 
+      {settings?.showHomepageCategories === true ? (
       <section
         id="categories"
-        className="bg-[#ffd447] px-5 py-20 sm:px-8 sm:py-28 lg:py-32"
+        className="bg-[#ffd447] px-4 py-14 sm:px-8 sm:py-28 lg:py-32"
       >
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 border-b-4 border-[#240B36] pb-5">
@@ -547,7 +560,7 @@ export default async function Home({
               </p>
             ) : null}
             {hasText(categoriesHeading) ? (
-              <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
+              <h2 className="font-serif text-4xl font-black lowercase leading-[0.95] sm:text-6xl sm:leading-[0.9]">
                 {categoriesHeading}
               </h2>
             ) : null}
@@ -588,8 +601,8 @@ export default async function Home({
                     />
                   </div>
                 ) : null}
-                <div className="p-5">
-                  <h3 className="font-serif text-4xl font-black lowercase leading-[0.9]">
+                <div className="p-4 sm:p-5">
+                  <h3 className="font-serif text-3xl font-black lowercase leading-[0.95] sm:text-4xl sm:leading-[0.9]">
                     {title}
                   </h3>
                   {copy ? (
@@ -604,8 +617,9 @@ export default async function Home({
           </div>
         </div>
       </section>
+      ) : null}
 
-      <section className="bg-[#240B36] px-5 py-20 text-[#fff3c7] sm:px-8 sm:py-28 lg:py-32">
+      <section className="bg-[#240B36] px-4 py-14 text-[#fff3c7] sm:px-8 sm:py-28 lg:py-32">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <div>
             {hasText(aboutEyebrow) ? (
@@ -614,13 +628,13 @@ export default async function Home({
               </p>
             ) : null}
             {hasText(aboutHeading) ? (
-              <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
+                <h2 className="font-serif text-4xl font-black lowercase leading-[0.95] sm:text-6xl sm:leading-[0.9]">
                 {aboutHeading}
               </h2>
             ) : null}
           </div>
           {hasText(aboutText) ? (
-            <p className="text-xl font-normal leading-[2.025rem]">
+            <p className="max-w-prose text-lg font-normal leading-[1.75rem] sm:text-xl sm:leading-[2.025rem]">
               {aboutText}
             </p>
           ) : null}
@@ -629,9 +643,9 @@ export default async function Home({
 
       <section
         id="newsletter"
-        className="bg-[#c7391f] px-5 py-20 sm:px-8 sm:py-28 lg:py-32"
+        className="bg-[#c7391f] px-4 py-14 sm:px-8 sm:py-28 lg:py-32"
       >
-        <div className="mx-auto grid max-w-7xl gap-6 border-4 border-[#240B36] bg-[#fff3c7] p-6 shadow-[8px_8px_0_#240B36] sm:p-8 lg:grid-cols-[1fr_0.85fr] lg:items-center lg:p-10">
+        <div className="mx-auto grid max-w-7xl gap-6 border-4 border-[#240B36] bg-[#fff3c7] p-4 shadow-[6px_6px_0_#240B36] sm:p-8 sm:shadow-[8px_8px_0_#240B36] lg:grid-cols-[1fr_0.85fr] lg:items-center lg:p-10">
           <div>
             {hasText(newsletterEyebrow) ? (
               <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
@@ -639,7 +653,7 @@ export default async function Home({
               </p>
             ) : null}
             {hasText(newsletterHeading) ? (
-              <h2 className="font-serif text-5xl font-black lowercase leading-[0.9] sm:text-6xl">
+              <h2 className="font-serif text-4xl font-black lowercase leading-[0.95] sm:text-6xl sm:leading-[0.9]">
                 {newsletterHeading}
               </h2>
             ) : null}
@@ -657,7 +671,7 @@ export default async function Home({
               id="email"
               type="email"
               placeholder="you@example.com"
-              className="min-h-12 border-2 border-[#240B36] bg-white px-4 text-base font-normal outline-none"
+              className="min-h-12 w-full border-2 border-[#240B36] bg-white px-4 text-base font-normal outline-none"
             />
             <button
               type="submit"

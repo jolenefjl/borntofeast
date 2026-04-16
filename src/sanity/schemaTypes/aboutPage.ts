@@ -13,6 +13,13 @@ export const aboutPageType = defineType({
     localizedStringField("heroEyebrow", "Hero eyebrow"),
     localizedStringField("heroTitle", "Hero title"),
     localizedTextField("heroIntro", "Hero intro", {rows: 4}),
+    localizedStringField("heroCtaLabel", "Hero CTA label"),
+    defineField({
+      name: "heroCtaHref",
+      title: "Hero CTA link",
+      description: "Use an internal path such as /recipes or an external URL.",
+      type: "string",
+    }),
     defineField({
       name: "heroImage",
       title: "Hero image",
@@ -70,6 +77,13 @@ export const aboutPageType = defineType({
     localizedStringField("nextEyebrow", "Next section eyebrow"),
     localizedStringField("nextTitle", "Next section title"),
     localizedTextField("nextText", "Next section text", {rows: 4}),
+    localizedStringField("nextCtaLabel", "Next section CTA label"),
+    defineField({
+      name: "nextCtaHref",
+      title: "Next section CTA link",
+      description: "Use an internal path such as /recipes or an external URL.",
+      type: "string",
+    }),
     defineField({
       name: "nextImage",
       title: "Next section image",
