@@ -77,6 +77,9 @@ const unitWords = new Set([
   "cans",
   "slice",
   "slices",
+  "small",
+  "medium",
+  "large",
 ]);
 
 const ingredientSectionHeadings = new Set([
@@ -109,6 +112,19 @@ function normalizeLine(line: string) {
     .trim();
 }
 
+function normalizeIngredientText(line: string) {
+  return normalizeLine(line)
+    .replace(/,/g, ".")
+    .replace(/(\d)([\u00bc\u00bd\u00be\u2153\u2154])/g, "$1 $2")
+    .replace(/^(\d+(?:\.\d+)?)(?:x|X)\b/, "$1")
+    .replace(
+      /^(\d+(?:\.\d+)?|\d+\/\d+|\u00bc|\u00bd|\u00be|\u2153|\u2154)([a-zA-Z]+)/,
+      "$1 $2",
+    )
+    .replace(/^(\d+(?:\.\d+)?)\s*[–-]\s*(\d+(?:\.\d+)?)/, "$1-$2")
+    .trim();
+}
+
 function normalizeHeading(line: string) {
   return normalizeLine(line).replace(/:$/, "").toLowerCase();
 }
@@ -118,6 +134,7 @@ function startsLikeStep(line: string) {
 }
 
 function parseFraction(value: string) {
+  const normalized = value.replace(",", ".").replace(/x$/i, "");
   const unicodeFractions: Record<string, number> = {
     "\u00bc": 0.25,
     "\u00bd": 0.5,
@@ -126,16 +143,16 @@ function parseFraction(value: string) {
     "\u2154": 2 / 3,
   };
 
-  if (unicodeFractions[value]) {
-    return unicodeFractions[value];
+  if (unicodeFractions[normalized]) {
+    return unicodeFractions[normalized];
   }
 
-  if (value.includes("/")) {
-    const [top, bottom] = value.split("/").map(Number);
+  if (normalized.includes("/")) {
+    const [top, bottom] = normalized.split("/").map(Number);
     return top && bottom ? top / bottom : undefined;
   }
 
-  const parsed = Number(value);
+  const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
@@ -146,7 +163,9 @@ function parseQuantity(tokens: string[]) {
     return {quantity: undefined, consumed: 0};
   }
 
-  const range = first.match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
+  const range = first
+    .replace(",", ".")
+    .match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
   if (range) {
     return {quantity: Number(range[1]), consumed: 1};
   }
@@ -175,10 +194,17 @@ function slugify(value: string) {
 }
 
 function isLikelyIngredientLine(line: string) {
-  const cleaned = normalizeLine(line);
+  const cleaned = normalizeIngredientText(line);
 
   if (!cleaned) {
     return false;
+  }
+
+  const tokens = cleaned.split(/\s+/);
+  const {consumed} = parseQuantity(tokens);
+
+  if (consumed > 0) {
+    return true;
   }
 
   if (/^(\d|[\u00bc\u00bd\u00be\u2153\u2154])/.test(cleaned)) {
@@ -215,7 +241,7 @@ function splitNote(name: string) {
 }
 
 function parseIngredient(line: string, index: number): ParsedIngredient | null {
-  const cleaned = normalizeLine(line);
+  const cleaned = normalizeIngredientText(line);
 
   if (!cleaned) {
     return null;
@@ -223,10 +249,13 @@ function parseIngredient(line: string, index: number): ParsedIngredient | null {
 
   const tokens = cleaned.split(/\s+/);
   const {quantity, consumed} = parseQuantity(tokens);
-  const unitCandidate = tokens[consumed]?.toLowerCase().replace(/\.$/, "");
+  const afterQuantity = /^x$/i.test(tokens[consumed] || "")
+    ? consumed + 1
+    : consumed;
+  const unitCandidate = tokens[afterQuantity]?.toLowerCase().replace(/\.$/, "");
   const hasUnit = unitCandidate ? unitWords.has(unitCandidate) : false;
-  const unit = hasUnit ? tokens[consumed] : undefined;
-  const nameStart = consumed + (hasUnit ? 1 : 0);
+  const unit = hasUnit ? tokens[afterQuantity] : undefined;
+  const nameStart = afterQuantity + (hasUnit ? 1 : 0);
   const rawName = tokens.slice(nameStart).join(" ") || cleaned;
   const {name, note} = splitNote(rawName);
   const filterKey = slugify(name);
@@ -288,6 +317,33 @@ function splitSections(raw: string) {
   return {ingredientLines, methodText: methodLines.join("\n")};
 }
 
+function isGroupHeading(line: string, nextLine: string) {
+  const normalized = normalizeLine(line).replace(/:$/, "").trim();
+  const heading = normalized.toLowerCase();
+
+  if (!normalized || !isLikelyIngredientLine(nextLine)) {
+    return false;
+  }
+
+  if (isLikelyIngredientLine(normalized)) {
+    return false;
+  }
+
+  if (line.trim().endsWith(":")) {
+    return true;
+  }
+
+  if (
+    /^(for\s+(the\s+)?)?(burger patties|patties|garnish|toppings?|sauce|dressing|marinade|filling|noodles?|rice|assembly|other essentials)$/i.test(
+      heading,
+    )
+  ) {
+    return true;
+  }
+
+  return /^for\s+(the\s+)?[a-z][a-z\s-]{2,40}$/i.test(heading);
+}
+
 function parseIngredients(lines: string[]) {
   const cleanedLines = lines.map((line) => line.trim()).filter(Boolean);
   const groups: ParsedIngredientGroup[] = [];
@@ -298,7 +354,7 @@ function parseIngredients(lines: string[]) {
     const normalized = normalizeLine(line);
     const nextLine = cleanedLines[index + 1] || "";
     const looksLikeHeading =
-      !isLikelyIngredientLine(normalized) && isLikelyIngredientLine(nextLine);
+      isGroupHeading(line, nextLine);
 
     if (looksLikeHeading) {
       currentGroup = {
