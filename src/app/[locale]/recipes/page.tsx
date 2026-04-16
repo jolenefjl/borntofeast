@@ -52,6 +52,13 @@ type RecipeListItem = {
     unitLabel?: LocalizedValue<string>;
     filterKey?: string;
   }[];
+  ingredientGroups?: {
+    ingredients?: {
+      name?: LocalizedValue<string>;
+      unitLabel?: LocalizedValue<string>;
+      filterKey?: string;
+    }[];
+  }[];
   methodSteps?: {
     content?: LocalizedValue<unknown[]>;
   }[];
@@ -74,6 +81,7 @@ const recipesQuery = `*[_type == "recipe" && defined(slug.current)] | order(publ
   intro,
   heroImage,
   ingredients[]{name, unitLabel, filterKey},
+  ingredientGroups[]{ingredients[]{name, unitLabel, filterKey}},
   methodSteps[]{content}
 }`;
 
@@ -97,8 +105,10 @@ function normalizeRecipe(recipe: RecipeListItem, locale: Locale) {
   );
   const cuisineKey = recipe.cuisine?.slug?.current || slugify(cuisineName);
   const intro = richTextToPlainText(resolveLocalized(recipe.intro, locale));
+  const sourceIngredients =
+    recipe.ingredientGroups?.flatMap((group) => group.ingredients || []) || [];
   const ingredients =
-    recipe.ingredients
+    (sourceIngredients.length ? sourceIngredients : recipe.ingredients)
       ?.map((ingredient) => ({
         label: resolveLocalizedString(ingredient.name, locale),
         value: ingredient.filterKey || "",

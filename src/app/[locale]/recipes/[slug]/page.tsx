@@ -83,6 +83,19 @@ type Recipe = {
     note?: LocalizedValue<string>;
     filterKey?: string;
   }[];
+  ingredientGroups?: {
+    _key: string;
+    groupTitle?: LocalizedValue<string>;
+    ingredients?: {
+      _key: string;
+      quantity?: number;
+      unit?: string;
+      unitLabel?: LocalizedValue<string>;
+      name: LocalizedValue<string>;
+      note?: LocalizedValue<string>;
+      filterKey?: string;
+    }[];
+  }[];
   methodSteps?: {
     _key: string;
     content?: LocalizedValue<PortableBlock[]>;
@@ -119,12 +132,34 @@ const recipeQuery = `*[_type == "recipe" && (
   gallery,
   intro,
   ingredients,
+  ingredientGroups,
   methodSteps,
   tipsAndNotes,
   lifeStory,
   guidanceCards,
   tiktokUrl
 }`;
+
+function normalizeIngredient(
+  ingredient: NonNullable<Recipe["ingredients"]>[number],
+  locale: Locale,
+) {
+  return {
+    _key: ingredient._key,
+    quantity: ingredient.quantity,
+    unit: resolveLocalizedString(ingredient.unitLabel, locale, ingredient.unit || ""),
+    name: resolveLocalizedString(ingredient.name, locale),
+    note: resolveLocalizedString(ingredient.note, locale),
+    filterKey: ingredient.filterKey,
+  };
+}
+
+function flattenRawIngredients(recipe: Recipe) {
+  const groupedIngredients =
+    recipe.ingredientGroups?.flatMap((group) => group.ingredients || []) || [];
+
+  return groupedIngredients.length ? groupedIngredients : recipe.ingredients || [];
+}
 
 function normalizeRecipe(recipe: Recipe, locale: Locale) {
   const title = resolveLocalizedString(recipe.title, locale);
@@ -152,15 +187,18 @@ function normalizeRecipe(recipe: Recipe, locale: Locale) {
     }))
     .filter((step) => step.content?.length);
   const ingredients = recipe.ingredients
-    ?.map((ingredient) => ({
-      _key: ingredient._key,
-      quantity: ingredient.quantity,
-      unit: resolveLocalizedString(ingredient.unitLabel, locale, ingredient.unit || ""),
-      name: resolveLocalizedString(ingredient.name, locale),
-      note: resolveLocalizedString(ingredient.note, locale),
-      filterKey: ingredient.filterKey,
-    }))
+    ?.map((ingredient) => normalizeIngredient(ingredient, locale))
     .filter((ingredient) => ingredient.name);
+  const ingredientGroups = recipe.ingredientGroups
+    ?.map((group) => ({
+      _key: group._key,
+      title: resolveLocalizedString(group.groupTitle, locale),
+      ingredients:
+        group.ingredients
+          ?.map((ingredient) => normalizeIngredient(ingredient, locale))
+          .filter((ingredient) => ingredient.name) || [],
+    }))
+    .filter((group) => group.title && group.ingredients.length);
   const guidanceCards = recipe.guidanceCards
     ?.map((card) => ({
       _key: card._key,
@@ -184,6 +222,7 @@ function normalizeRecipe(recipe: Recipe, locale: Locale) {
     lifeStory,
     methodSteps,
     ingredients,
+    ingredientGroups,
     guidanceCards,
   };
 }
@@ -209,7 +248,9 @@ function isRecipeVisibleForLocale(
 
   if (locale === "no") {
     return Boolean(
-      recipe.cuisineName && recipe.ingredients?.length && recipe.methodSteps?.length,
+      recipe.cuisineName &&
+        (recipe.ingredientGroups?.length || recipe.ingredients?.length) &&
+        recipe.methodSteps?.length,
     );
   }
 
@@ -290,7 +331,10 @@ export default async function RecipePage({params}: RecipePageProps) {
   }
 
   const totalTime = normalizedRecipe.prepTime + normalizedRecipe.cookTime;
-  const nutrition = calculateRecipeNutrition(recipe);
+  const nutrition = calculateRecipeNutrition({
+    servings: recipe.servings,
+    ingredients: flattenRawIngredients(recipe),
+  });
   const heroImage = recipe.heroImage?.asset
     ? urlFor(recipe.heroImage).width(1000).height(1300).fit("crop").url()
     : fallbackHeroImage;
@@ -305,6 +349,11 @@ export default async function RecipePage({params}: RecipePageProps) {
             alt: image.alt || normalizedRecipe.title,
           }))
       : fallbackGallery;
+  const displayIngredients = (
+    normalizedRecipe.ingredientGroups?.length
+      ? normalizedRecipe.ingredientGroups.flatMap((group) => group.ingredients || [])
+      : normalizedRecipe.ingredients || []
+  ).filter((ingredient) => Boolean(ingredient));
   const recipeJsonLd = {
     "@context": "https://schema.org",
     "@type": "Recipe",
@@ -316,10 +365,8 @@ export default async function RecipePage({params}: RecipePageProps) {
     cookTime: minutesToDuration(normalizedRecipe.cookTime),
     totalTime: minutesToDuration(totalTime),
     recipeYield: `${normalizedRecipe.servings}`,
-    recipeIngredient: normalizedRecipe.ingredients?.map((ingredient) =>
-      [ingredient.quantity, ingredient.unit, ingredient.name]
-        .filter(Boolean)
-        .join(" "),
+    recipeIngredient: displayIngredients.map((ingredient) =>
+      [ingredient.quantity, ingredient.unit, ingredient.name].filter(Boolean).join(" "),
     ),
     recipeInstructions: normalizedRecipe.methodSteps?.map((step, index) => ({
       "@type": "HowToStep",
@@ -397,6 +444,7 @@ export default async function RecipePage({params}: RecipePageProps) {
         dictionary={dictionary.recipe}
         baseServings={normalizedRecipe.servings}
         ingredients={normalizedRecipe.ingredients}
+        ingredientGroups={normalizedRecipe.ingredientGroups}
         nutrition={nutrition}
         methodSteps={normalizedRecipe.methodSteps}
         tipsAndNotes={normalizedRecipe.tipsAndNotes}

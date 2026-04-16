@@ -22,6 +22,12 @@ type Ingredient = {
   note?: string;
 };
 
+type IngredientGroup = {
+  _key: string;
+  title: string;
+  ingredients: Ingredient[];
+};
+
 type MethodStep = {
   _key: string;
   content?: PortableBlock[];
@@ -50,6 +56,7 @@ type RecipeContentProps = {
   dictionary: Dictionary["recipe"];
   baseServings: number;
   ingredients?: Ingredient[];
+  ingredientGroups?: IngredientGroup[];
   nutrition?: Nutrition | null;
   methodSteps?: MethodStep[];
   tipsAndNotes?: PortableBlock[];
@@ -176,6 +183,33 @@ function IngredientRows({
       ))}
     </ul>
   );
+}
+
+function IngredientList({
+  ingredients,
+  ingredientGroups,
+  scale,
+}: {
+  ingredients?: Ingredient[];
+  ingredientGroups?: IngredientGroup[];
+  scale: number;
+}) {
+  if (ingredientGroups?.length) {
+    return (
+      <div className="mt-4 space-y-5">
+        {ingredientGroups.map((group) => (
+          <section key={group._key}>
+            <h3 className="border-2 border-[#240B36] bg-[#ffd447] px-3 py-2 text-xs font-black uppercase leading-[0.95] text-[#7b2418]">
+              {group.title}
+            </h3>
+            <IngredientRows ingredients={group.ingredients} scale={scale} compact />
+          </section>
+        ))}
+      </div>
+    );
+  }
+
+  return <IngredientRows ingredients={ingredients} scale={scale} />;
 }
 
 function GalleryLightbox({
@@ -385,6 +419,7 @@ export function RecipeContent({
   dictionary,
   baseServings,
   ingredients,
+  ingredientGroups,
   nutrition,
   methodSteps,
   tipsAndNotes,
@@ -439,7 +474,11 @@ export function RecipeContent({
           <h2 className="font-serif text-3xl font-black lowercase leading-[0.95] sm:text-4xl sm:leading-[0.9]">
             {dictionary.ingredients}
           </h2>
-          <IngredientRows ingredients={ingredients} scale={scale} />
+          <IngredientList
+            ingredients={ingredients}
+            ingredientGroups={ingredientGroups}
+            scale={scale}
+          />
           <NutritionCard dictionary={dictionary} nutrition={nutrition} />
         </aside>
 

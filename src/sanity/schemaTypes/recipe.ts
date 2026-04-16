@@ -132,6 +132,24 @@ function plainTextFromBlocks(blocks: unknown) {
     .join(" ");
 }
 
+const ingredientArrayMember = defineArrayMember({
+  name: "ingredient",
+  title: "Ingredient",
+  type: "object",
+  fields: ingredientFields,
+  preview: {
+    select: {
+      quantity: "quantity",
+      unit: "unit",
+      unitLabel: "unitLabel",
+      title: "name",
+      note: "note",
+      filterKey: "filterKey",
+    },
+    prepare: prepareIngredientPreview,
+  },
+});
+
 export const recipeType = defineType({
   name: "recipe",
   title: "Recipe",
@@ -270,28 +288,54 @@ export const recipeType = defineType({
       name: "ingredients",
       title: "Ingredients (English + Norwegian names)",
       description:
-        "Each ingredient has shared quantity/unit/filter key fields, plus localized English and Norwegian display name and note fields.",
+        "Use this for simple recipes with one flat ingredient list. For recipes with sections, use Ingredient groups instead.",
+      type: "array",
+      of: [ingredientArrayMember],
+    }),
+    defineField({
+      name: "ingredientGroups",
+      title: "Ingredient groups",
+      description:
+        "Optional structured ingredient sections for recipes that need them, such as Burger Patties, Garnish, or Other Essentials. Leave empty to use the flat ingredient list.",
       type: "array",
       of: [
         defineArrayMember({
-          name: "ingredient",
-          title: "Ingredient",
+          name: "ingredientGroup",
+          title: "Ingredient group",
           type: "object",
-          fields: ingredientFields,
+          fields: [
+            localizedStringField("groupTitle", "Group title", {
+              description:
+                "Localized section heading shown above this group of ingredients.",
+            }),
+            defineField({
+              name: "ingredients",
+              title: "Ingredients",
+              type: "array",
+              of: [ingredientArrayMember],
+              validation: (rule) => rule.min(1),
+            }),
+          ],
           preview: {
             select: {
-              quantity: "quantity",
-              unit: "unit",
-              unitLabel: "unitLabel",
-              title: "name",
-              note: "note",
-              filterKey: "filterKey",
+              title: "groupTitle.en",
+              norwegianTitle: "groupTitle.no",
+              ingredients: "ingredients",
             },
-            prepare: prepareIngredientPreview,
+            prepare({title, norwegianTitle, ingredients}) {
+              const count = Array.isArray(ingredients) ? ingredients.length : 0;
+
+              return {
+                title: title || "Ingredient group",
+                subtitle: [
+                  norwegianTitle ? "Norwegian added" : "Norwegian missing",
+                  `${count} ingredient${count === 1 ? "" : "s"}`,
+                ].join(" | "),
+              };
+            },
           },
         }),
       ],
-      validation: (rule) => rule.required().min(1),
     }),
     defineField({
       name: "methodSteps",
