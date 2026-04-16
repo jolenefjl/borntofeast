@@ -339,18 +339,12 @@ function GalleryLightbox({
 
 function TikTokEmbed({
   url,
-  fallback,
   watchLabel,
 }: {
-  url?: string;
-  fallback: string;
+  url: string;
   watchLabel: string;
 }) {
   useEffect(() => {
-    if (!url) {
-      return;
-    }
-
     if (window.tiktokEmbed?.load) {
       window.tiktokEmbed.load();
       return;
@@ -371,19 +365,11 @@ function TikTokEmbed({
     document.body.appendChild(script);
   }, [url]);
 
-  if (!url) {
-    return (
-      <p className="max-w-md text-xl font-normal leading-[1.6rem] sm:text-2xl">
-        {fallback}
-      </p>
-    );
-  }
-
   const videoId = url.match(/\/video\/(\d+)/)?.[1];
 
   return (
     <blockquote
-      className="tiktok-embed mx-auto min-w-0 max-w-[325px] bg-[#fff3c7] text-[#240B36]"
+      className="tiktok-embed mx-auto min-w-0 max-w-[325px] bg-transparent text-[#240B36]"
       cite={url}
       style={{minWidth: 0, width: "100%", maxWidth: 325}}
       {...(videoId ? {"data-video-id": videoId} : {})}
@@ -553,18 +539,19 @@ export function RecipeContent({
             </section>
           ) : null}
 
-          <section className="border-4 border-[#240B36] bg-[#240B36] p-4 text-[#fff3c7] sm:p-5">
-            <p className="text-sm font-medium uppercase leading-[0.9] text-[#ffd447]">
-              {dictionary.tiktok}
-            </p>
-            <div className="mt-4 flex min-h-[32rem] min-w-0 items-start justify-center overflow-hidden border-2 border-dashed border-[#ffd447] p-3 text-center sm:min-h-[36rem] sm:p-6">
+          {tiktokUrl ? (
+            <section className="py-2">
+              <p className="mb-4 text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
+                {dictionary.tiktok}
+              </p>
+              <div className="flex min-w-0 justify-center overflow-hidden">
               <TikTokEmbed
                 url={tiktokUrl}
-                fallback={dictionary.tiktokFallback}
                 watchLabel={dictionary.watchOnTiktok}
               />
-            </div>
-          </section>
+              </div>
+            </section>
+          ) : null}
         </div>
       </div>
     </section>
