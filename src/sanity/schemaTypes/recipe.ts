@@ -1,5 +1,6 @@
 import {defineArrayMember, defineField, defineType} from "sanity";
 
+import {RecipeStructureImportInput} from "@/sanity/components/RecipeStructureImportInput";
 import {
   localizedRichTextField,
   localizedStringField,
@@ -283,6 +284,17 @@ export const recipeType = defineType({
     }),
     localizedRichTextField("intro", "Short description / intro", {
       description: "Personal, conversational, and why you love this dish.",
+    }),
+    defineField({
+      name: "recipeStructureImportText",
+      title: "Paste ingredient + method draft",
+      description:
+        "Optional helper for recipe entry. Paste rough ingredients and method text, preview the parsed structure, then import only ingredients/groups and method steps. This does not publish and does not fill Norwegian fields.",
+      type: "text",
+      rows: 14,
+      components: {
+        input: RecipeStructureImportInput,
+      },
     }),
     defineField({
       name: "ingredients",
