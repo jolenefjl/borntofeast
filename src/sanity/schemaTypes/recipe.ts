@@ -28,22 +28,24 @@ const ingredientFields = [
   }),
   defineField({
     name: "name",
-    title: "Ingredient name",
-    description: "The display name shown in the recipe, localized for readers.",
+    title: "Ingredient name (English + Norwegian)",
+    description:
+      "Open this field to enter the English and Norwegian display names shown in the ingredients list.",
     type: "object",
     fields: [
-      defineField({name: "en", title: "English", type: "string"}),
-      defineField({name: "no", title: "Norwegian", type: "string"}),
+      defineField({name: "en", title: "English ingredient name", type: "string"}),
+      defineField({name: "no", title: "Norwegian ingredient name", type: "string"}),
     ],
   }),
   defineField({
     name: "note",
-    title: "Optional note",
-    description: "Optional display note, for example finely sliced or toasted.",
+    title: "Optional ingredient note (English + Norwegian)",
+    description:
+      "Open this field to enter optional English and Norwegian notes, for example finely sliced or toasted.",
     type: "object",
     fields: [
-      defineField({name: "en", title: "English", type: "string"}),
-      defineField({name: "no", title: "Norwegian", type: "string"}),
+      defineField({name: "en", title: "English ingredient note", type: "string"}),
+      defineField({name: "no", title: "Norwegian ingredient note", type: "string"}),
     ],
   }),
   defineField({
@@ -78,12 +80,38 @@ function prepareIngredientPreview({
 }) {
   const amount = [quantity, unit].filter(Boolean).join(" ");
   const resolvedTitle = typeof title === "object" ? title.en : title;
+  const norwegianTitle = typeof title === "object" ? title.no : undefined;
   const resolvedNote = typeof note === "object" ? note.en : note;
+  const norwegianStatus = norwegianTitle ? "Norwegian added" : "Norwegian missing";
 
   return {
     title: [amount, resolvedTitle].filter(Boolean).join(" "),
-    subtitle: [filterKey, resolvedNote].filter(Boolean).join(" | "),
+    subtitle: [norwegianStatus, filterKey, resolvedNote]
+      .filter(Boolean)
+      .join(" | "),
   };
+}
+
+function plainTextFromBlocks(blocks: unknown) {
+  if (!Array.isArray(blocks)) {
+    return "";
+  }
+
+  return blocks
+    .map((block) => {
+      if (!block || typeof block !== "object" || !("children" in block)) {
+        return "";
+      }
+
+      const children = (block as {children?: {text?: string}[]}).children;
+
+      return children
+        ?.map((child) => child.text)
+        .filter(Boolean)
+        .join("");
+    })
+    .filter(Boolean)
+    .join(" ");
 }
 
 export const recipeType = defineType({
@@ -222,7 +250,9 @@ export const recipeType = defineType({
     }),
     defineField({
       name: "ingredients",
-      title: "Ingredients",
+      title: "Ingredients (English + Norwegian names)",
+      description:
+        "Each ingredient has shared quantity/unit/filter key fields, plus localized English and Norwegian display name and note fields.",
       type: "array",
       of: [
         defineArrayMember({
@@ -246,7 +276,9 @@ export const recipeType = defineType({
     }),
     defineField({
       name: "methodSteps",
-      title: "Method steps",
+      title: "Method steps (English + Norwegian)",
+      description:
+        "Open each step and fill in both English and Norwegian step text. Norwegian recipe pages only render when Norwegian method content exists.",
       type: "array",
       of: [
         defineArrayMember({
@@ -254,7 +286,9 @@ export const recipeType = defineType({
           title: "Method step",
           type: "object",
           fields: [
-            localizedRichTextField("content", "Step", {
+            localizedRichTextField("content", "Step text (English + Norwegian)", {
+              description:
+                "Open this field to enter English step text and Norwegian step text.",
               simple: true,
             }),
           ],
@@ -263,18 +297,16 @@ export const recipeType = defineType({
               blocks: "content",
             },
             prepare({blocks}) {
-              const localizedBlocks =
+              const englishBlocks =
                 blocks && !Array.isArray(blocks) ? blocks.en : blocks;
-              const block = Array.isArray(localizedBlocks)
-                ? localizedBlocks[0]
-                : undefined;
-              const title = block?.children
-                ?.map((child: {text?: string}) => child.text)
-                .filter(Boolean)
-                .join("");
+              const norwegianBlocks =
+                blocks && !Array.isArray(blocks) ? blocks.no : undefined;
+              const title = plainTextFromBlocks(englishBlocks);
+              const hasNorwegian = Boolean(plainTextFromBlocks(norwegianBlocks));
 
               return {
                 title: title || "Method step",
+                subtitle: hasNorwegian ? "Norwegian added" : "Norwegian missing",
               };
             },
           },
