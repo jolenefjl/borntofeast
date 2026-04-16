@@ -23,8 +23,21 @@ const ingredientFields = [
   }),
   defineField({
     name: "unit",
-    title: "Unit",
+    title: "Shared unit fallback",
+    description:
+      "Existing shared unit kept for compatibility. Use Localized unit label below when English and Norwegian should differ, for example tbsp / ss.",
     type: "string",
+  }),
+  defineField({
+    name: "unitLabel",
+    title: "Localized unit label (English + Norwegian)",
+    description:
+      "Optional display unit per language. Useful for translating tbsp, tsp, cup, clove, bunch, etc. Leave blank for language-neutral units such as g or ml.",
+    type: "object",
+    fields: [
+      defineField({name: "en", title: "English unit label", type: "string"}),
+      defineField({name: "no", title: "Norwegian unit label", type: "string"}),
+    ],
   }),
   defineField({
     name: "name",
@@ -68,21 +81,26 @@ const ingredientFields = [
 function prepareIngredientPreview({
   quantity,
   unit,
+  unitLabel,
   title,
   note,
   filterKey,
 }: {
   quantity?: number;
   unit?: string;
+  unitLabel?: {en?: string; no?: string};
   title?: string | {en?: string; no?: string};
   note?: string | {en?: string; no?: string};
   filterKey?: string;
 }) {
-  const amount = [quantity, unit].filter(Boolean).join(" ");
+  const resolvedUnit = unitLabel?.en || unit;
+  const amount = [quantity, resolvedUnit].filter(Boolean).join(" ");
   const resolvedTitle = typeof title === "object" ? title.en : title;
   const norwegianTitle = typeof title === "object" ? title.no : undefined;
+  const norwegianUnit = unitLabel?.no || unit;
   const resolvedNote = typeof note === "object" ? note.en : note;
-  const norwegianStatus = norwegianTitle ? "Norwegian added" : "Norwegian missing";
+  const norwegianStatus =
+    norwegianTitle && norwegianUnit ? "Norwegian added" : "Norwegian missing";
 
   return {
     title: [amount, resolvedTitle].filter(Boolean).join(" "),
@@ -264,6 +282,7 @@ export const recipeType = defineType({
             select: {
               quantity: "quantity",
               unit: "unit",
+              unitLabel: "unitLabel",
               title: "name",
               note: "note",
               filterKey: "filterKey",

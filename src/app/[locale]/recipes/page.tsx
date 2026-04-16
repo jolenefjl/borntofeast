@@ -49,6 +49,7 @@ type RecipeListItem = {
   heroImage?: {alt?: string; asset?: unknown};
   ingredients?: {
     name?: LocalizedValue<string>;
+    unitLabel?: LocalizedValue<string>;
     filterKey?: string;
   }[];
   methodSteps?: {
@@ -72,7 +73,7 @@ const recipesQuery = `*[_type == "recipe" && defined(slug.current)] | order(publ
   cookTime,
   intro,
   heroImage,
-  ingredients[]{name, filterKey},
+  ingredients[]{name, unitLabel, filterKey},
   methodSteps[]{content}
 }`;
 

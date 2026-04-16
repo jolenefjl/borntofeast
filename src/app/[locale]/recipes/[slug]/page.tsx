@@ -75,6 +75,7 @@ type Recipe = {
     _key: string;
     quantity?: number;
     unit?: string;
+    unitLabel?: LocalizedValue<string>;
     name: LocalizedValue<string>;
     note?: LocalizedValue<string>;
     filterKey?: string;
@@ -144,7 +145,7 @@ function normalizeRecipe(recipe: Recipe, locale: Locale) {
     ?.map((ingredient) => ({
       _key: ingredient._key,
       quantity: ingredient.quantity,
-      unit: ingredient.unit,
+      unit: resolveLocalizedString(ingredient.unitLabel, locale, ingredient.unit || ""),
       name: resolveLocalizedString(ingredient.name, locale),
       note: resolveLocalizedString(ingredient.note, locale),
       filterKey: ingredient.filterKey,
