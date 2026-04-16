@@ -1,5 +1,10 @@
 import {defineArrayMember, defineField, defineType} from "sanity";
 
+import {
+  localizedStringField,
+  localizedTextField,
+} from "@/sanity/schemaTypes/localized";
+
 export const siteSettingsType = defineType({
   name: "siteSettings",
   title: "Site Settings",
@@ -32,35 +37,20 @@ export const siteSettingsType = defineType({
     },
   ],
   fields: [
-    defineField({
-      name: "homepageHeroLine1",
-      title: "Hero headline line 1",
-      type: "string",
+    localizedStringField("homepageHeroLine1", "Hero headline line 1", {
       fieldset: "homepageHero",
     }),
-    defineField({
-      name: "homepageHeroLine2",
-      title: "Hero headline line 2",
-      type: "string",
+    localizedStringField("homepageHeroLine2", "Hero headline line 2", {
       fieldset: "homepageHero",
     }),
-    defineField({
-      name: "homepageHeroLine3",
-      title: "Hero headline line 3",
-      type: "string",
+    localizedStringField("homepageHeroLine3", "Hero headline line 3", {
       fieldset: "homepageHero",
     }),
-    defineField({
-      name: "homepageHeroIntro",
-      title: "Hero intro text",
-      type: "text",
+    localizedTextField("homepageHeroIntro", "Hero intro text", {
       rows: 3,
       fieldset: "homepageHero",
     }),
-    defineField({
-      name: "homepageHeroCtaLabel",
-      title: "Hero CTA label",
-      type: "string",
+    localizedStringField("homepageHeroCtaLabel", "Hero CTA label", {
       fieldset: "homepageHero",
     }),
     defineField({
@@ -99,22 +89,13 @@ export const siteSettingsType = defineType({
       ],
       validation: (rule) => rule.max(4),
     }),
-    defineField({
-      name: "homepageRecipesEyebrow",
-      title: "Recipes eyebrow",
-      type: "string",
+    localizedStringField("homepageRecipesEyebrow", "Recipes eyebrow", {
       fieldset: "homepageRecipes",
     }),
-    defineField({
-      name: "homepageRecipesHeading",
-      title: "Recipes heading",
-      type: "string",
+    localizedStringField("homepageRecipesHeading", "Recipes heading", {
       fieldset: "homepageRecipes",
     }),
-    defineField({
-      name: "homepageRecipesCtaLabel",
-      title: "Recipes CTA label",
-      type: "string",
+    localizedStringField("homepageRecipesCtaLabel", "Recipes CTA label", {
       fieldset: "homepageRecipes",
     }),
     defineField({
@@ -123,16 +104,10 @@ export const siteSettingsType = defineType({
       type: "string",
       fieldset: "homepageRecipes",
     }),
-    defineField({
-      name: "homepageCategoriesEyebrow",
-      title: "Categories eyebrow",
-      type: "string",
+    localizedStringField("homepageCategoriesEyebrow", "Categories eyebrow", {
       fieldset: "homepageCategories",
     }),
-    defineField({
-      name: "homepageCategoriesHeading",
-      title: "Categories heading",
-      type: "string",
+    localizedStringField("homepageCategoriesHeading", "Categories heading", {
       fieldset: "homepageCategories",
     }),
     defineField({
@@ -146,22 +121,13 @@ export const siteSettingsType = defineType({
           title: "Category card",
           type: "object",
           fields: [
-            defineField({
-              name: "title",
-              title: "Title",
-              type: "string",
-            }),
+            localizedStringField("title", "Title"),
             defineField({
               name: "href",
               title: "Link",
               type: "string",
             }),
-            defineField({
-              name: "copy",
-              title: "Copy",
-              type: "text",
-              rows: 3,
-            }),
+            localizedTextField("copy", "Copy", {rows: 3}),
             defineField({
               name: "image",
               title: "Image",
@@ -186,48 +152,27 @@ export const siteSettingsType = defineType({
         }),
       ],
     }),
-    defineField({
-      name: "homepageAboutEyebrow",
-      title: "About eyebrow",
-      type: "string",
+    localizedStringField("homepageAboutEyebrow", "About eyebrow", {
       fieldset: "homepageAbout",
     }),
-    defineField({
-      name: "homepageAboutHeading",
-      title: "About heading",
-      type: "string",
+    localizedStringField("homepageAboutHeading", "About heading", {
       fieldset: "homepageAbout",
     }),
-    defineField({
-      name: "homepageAboutText",
-      title: "About text",
-      type: "text",
+    localizedTextField("homepageAboutText", "About text", {
       rows: 4,
       fieldset: "homepageAbout",
     }),
-    defineField({
-      name: "homepageNewsletterEyebrow",
-      title: "Newsletter eyebrow",
-      type: "string",
+    localizedStringField("homepageNewsletterEyebrow", "Newsletter eyebrow", {
       fieldset: "homepageNewsletter",
     }),
-    defineField({
-      name: "homepageNewsletterHeading",
-      title: "Newsletter heading",
-      type: "string",
+    localizedStringField("homepageNewsletterHeading", "Newsletter heading", {
       fieldset: "homepageNewsletter",
     }),
-    defineField({
-      name: "homepageNewsletterText",
-      title: "Newsletter text",
-      type: "text",
+    localizedTextField("homepageNewsletterText", "Newsletter text", {
       rows: 3,
       fieldset: "homepageNewsletter",
     }),
-    defineField({
-      name: "homepageNewsletterButtonLabel",
-      title: "Newsletter button label",
-      type: "string",
+    localizedStringField("homepageNewsletterButtonLabel", "Newsletter button label", {
       fieldset: "homepageNewsletter",
     }),
     defineField({

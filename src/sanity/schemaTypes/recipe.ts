@@ -1,5 +1,11 @@
 import {defineArrayMember, defineField, defineType} from "sanity";
 
+import {
+  localizedBlockField,
+  localizedStringField,
+  localizedTextField,
+} from "@/sanity/schemaTypes/localized";
+
 const cuisineOptions = [
   "Chinese",
   "Korean",
@@ -24,13 +30,20 @@ const ingredientFields = [
   defineField({
     name: "name",
     title: "Ingredient name",
-    type: "string",
-    validation: (rule) => rule.required(),
+    type: "object",
+    fields: [
+      defineField({name: "en", title: "English", type: "string"}),
+      defineField({name: "no", title: "Norwegian", type: "string"}),
+    ],
   }),
   defineField({
     name: "note",
     title: "Optional note",
-    type: "string",
+    type: "object",
+    fields: [
+      defineField({name: "en", title: "English", type: "string"}),
+      defineField({name: "no", title: "Norwegian", type: "string"}),
+    ],
   }),
 ];
 
@@ -42,14 +55,16 @@ function prepareIngredientPreview({
 }: {
   quantity?: number;
   unit?: string;
-  title?: string;
-  note?: string;
+  title?: string | {en?: string; no?: string};
+  note?: string | {en?: string; no?: string};
 }) {
   const amount = [quantity, unit].filter(Boolean).join(" ");
+  const resolvedTitle = typeof title === "object" ? title.en : title;
+  const resolvedNote = typeof note === "object" ? note.en : note;
 
   return {
-    title: [amount, title].filter(Boolean).join(" "),
-    subtitle: note,
+    title: [amount, resolvedTitle].filter(Boolean).join(" "),
+    subtitle: resolvedNote,
   };
 }
 
@@ -58,18 +73,13 @@ export const recipeType = defineType({
   title: "Recipe",
   type: "document",
   fields: [
-    defineField({
-      name: "title",
-      title: "Recipe title",
-      type: "string",
-      validation: (rule) => rule.required(),
-    }),
+    localizedStringField("title", "Recipe title"),
     defineField({
       name: "slug",
       title: "Slug",
       type: "slug",
       options: {
-        source: "title",
+        source: "title.en",
         maxLength: 96,
       },
       validation: (rule) => rule.required(),
@@ -156,13 +166,9 @@ export const recipeType = defineType({
         }),
       ],
     }),
-    defineField({
-      name: "intro",
-      title: "Short description / intro",
+    localizedTextField("intro", "Short description / intro", {
       description: "Personal, conversational, and why you love this dish.",
-      type: "text",
       rows: 5,
-      validation: (rule) => rule.required(),
     }),
     defineField({
       name: "ingredients",
@@ -197,44 +203,18 @@ export const recipeType = defineType({
           title: "Method step",
           type: "object",
           fields: [
-            defineField({
-              name: "content",
-              title: "Step",
-              type: "array",
-              of: [defineArrayMember({type: "block"})],
-              validation: (rule) => rule.required(),
-            }),
-            defineField({
-              name: "ingredients",
-              title: "Ingredients used in this step",
-              description:
-                "Optional. Add ingredients here when you want them to appear inside the method. Quantities scale with the servings buttons.",
-              type: "array",
-              of: [
-                defineArrayMember({
-                  name: "stepIngredient",
-                  title: "Step ingredient",
-                  type: "object",
-                  fields: ingredientFields,
-                  preview: {
-                    select: {
-                      quantity: "quantity",
-                      unit: "unit",
-                      title: "name",
-                      note: "note",
-                    },
-                    prepare: prepareIngredientPreview,
-                  },
-                }),
-              ],
-            }),
+            localizedBlockField("content", "Step"),
           ],
           preview: {
             select: {
               blocks: "content",
             },
             prepare({blocks}) {
-              const block = Array.isArray(blocks) ? blocks[0] : undefined;
+              const localizedBlocks =
+                blocks && !Array.isArray(blocks) ? blocks.en : blocks;
+              const block = Array.isArray(localizedBlocks)
+                ? localizedBlocks[0]
+                : undefined;
               const title = block?.children
                 ?.map((child: {text?: string}) => child.text)
                 .filter(Boolean)
@@ -249,12 +229,7 @@ export const recipeType = defineType({
       ],
       validation: (rule) => rule.required().min(1),
     }),
-    defineField({
-      name: "tipsAndNotes",
-      title: "Tips & notes",
-      type: "array",
-      of: [defineArrayMember({type: "block"})],
-    }),
+    localizedBlockField("tipsAndNotes", "Tips & notes"),
     defineField({
       name: "tiktokUrl",
       title: "TikTok video URL",
@@ -263,6 +238,8 @@ export const recipeType = defineType({
     defineField({
       name: "tags",
       title: "Tags",
+      description:
+        "Use lowercase practical tags such as quick, vegetarian, noodles, rice, spicy, pantry, weeknight, comfort, deep-dive. Keep tags consistent so filters work later.",
       type: "array",
       of: [defineArrayMember({type: "string"})],
       options: {
@@ -295,6 +272,16 @@ export const recipeType = defineType({
       title: "title",
       subtitle: "cuisineType",
       media: "heroImage",
+    },
+    prepare({title, subtitle, media}) {
+      const resolvedTitle =
+        typeof title === "object" && title ? title.en : title;
+
+      return {
+        title: resolvedTitle || "Recipe",
+        subtitle,
+        media,
+      };
     },
   },
 });

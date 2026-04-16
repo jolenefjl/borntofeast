@@ -1,7 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
+import type {Metadata} from "next";
 
 import {SiteHeader} from "@/app/components/SiteHeader";
+import {isLocale, localizedPath, type Locale} from "@/i18n/config";
+import {getDictionary} from "@/i18n/dictionaries";
+import {resolveLocalizedString, type LocalizedValue} from "@/i18n/localized";
+import {absoluteUrl, localeAlternates} from "@/i18n/urls";
 import {client} from "@/sanity/lib/client";
 import {urlFor} from "@/sanity/lib/image";
 
@@ -82,31 +87,31 @@ const categories: CategoryCard[] = [
 ];
 
 type SiteSettings = {
-  homepageHeroLine1?: string;
-  homepageHeroLine2?: string;
-  homepageHeroLine3?: string;
-  homepageHeroIntro?: string;
-  homepageHeroCtaLabel?: string;
+  homepageHeroLine1?: LocalizedValue<string>;
+  homepageHeroLine2?: LocalizedValue<string>;
+  homepageHeroLine3?: LocalizedValue<string>;
+  homepageHeroIntro?: LocalizedValue<string>;
+  homepageHeroCtaLabel?: LocalizedValue<string>;
   homepageHeroCtaHref?: string;
   homepageHeroPortrait?: {
     alt?: string;
     asset?: unknown;
   };
   featuredRecipes?: RecipeCard[];
-  homepageRecipesEyebrow?: string;
-  homepageRecipesHeading?: string;
-  homepageRecipesCtaLabel?: string;
+  homepageRecipesEyebrow?: LocalizedValue<string>;
+  homepageRecipesHeading?: LocalizedValue<string>;
+  homepageRecipesCtaLabel?: LocalizedValue<string>;
   homepageRecipesCtaHref?: string;
-  homepageCategoriesEyebrow?: string;
-  homepageCategoriesHeading?: string;
+  homepageCategoriesEyebrow?: LocalizedValue<string>;
+  homepageCategoriesHeading?: LocalizedValue<string>;
   homepageCategoryCards?: CategoryCard[];
-  homepageAboutEyebrow?: string;
-  homepageAboutHeading?: string;
-  homepageAboutText?: string;
-  homepageNewsletterEyebrow?: string;
-  homepageNewsletterHeading?: string;
-  homepageNewsletterText?: string;
-  homepageNewsletterButtonLabel?: string;
+  homepageAboutEyebrow?: LocalizedValue<string>;
+  homepageAboutHeading?: LocalizedValue<string>;
+  homepageAboutText?: LocalizedValue<string>;
+  homepageNewsletterEyebrow?: LocalizedValue<string>;
+  homepageNewsletterHeading?: LocalizedValue<string>;
+  homepageNewsletterText?: LocalizedValue<string>;
+  homepageNewsletterButtonLabel?: LocalizedValue<string>;
 };
 
 type HomepageData = {
@@ -115,7 +120,7 @@ type HomepageData = {
 };
 
 type RecipeCard = {
-  title?: string;
+  title?: LocalizedValue<string>;
   href?: string;
   slug?: string;
   cuisine?: string;
@@ -123,7 +128,7 @@ type RecipeCard = {
   time?: string;
   prepTime?: number;
   cookTime?: number;
-  description?: string;
+  description?: LocalizedValue<string>;
   image?:
     | string
     | {
@@ -135,9 +140,9 @@ type RecipeCard = {
 
 type CategoryCard = {
   name?: string;
-  title?: string;
+  title?: LocalizedValue<string>;
   href?: string;
-  copy?: string;
+  copy?: LocalizedValue<string>;
   image?:
     | string
     | {
@@ -193,43 +198,16 @@ const homepageQuery = `{
   }
 }`;
 
-const defaultHero = {
-  line1: "Big bowls.",
-  line2: "Loud flavors.",
-  line3: "No gatekeeping.",
-  intro:
-    "Easy recipes for Asians abroad who miss home, and for Norwegians discovering the Asian kitchen.",
-  ctaLabel: "Explore",
-  ctaHref: "#recipes",
-};
-
-const defaultHomepageCopy = {
-  recipesEyebrow: "homepage picks",
-  recipesHeading: "cook this week",
-  recipesCtaLabel: "get the feast letter",
-  recipesCtaHref: "#newsletter",
-  categoriesEyebrow: "browse the pantry",
-  categoriesHeading: "cuisines and cravings",
-  aboutEyebrow: "about jo",
-  aboutHeading: "malaysian roots, norway kitchen.",
-  aboutText:
-    "Born to Feast is for the homesick, the curious, the hungry, and the people standing in a Norwegian supermarket wondering which chilli paste will get them closest. Come for quick dinners, stay for the recipes that ask for a whole afternoon and reward you properly.",
-  newsletterEyebrow: "the feast letter",
-  newsletterHeading: "get hungry before friday.",
-  newsletterText: "One recipe, one pantry note, and one thing worth eating this week.",
-  newsletterButtonLabel: "sign up",
-};
-
 function hasText(value?: string) {
   return Boolean(value?.trim());
 }
 
-function getSetting(
-  settings: SiteSettings | null,
-  value: string | null | undefined,
+function getSetting<T>(
+  locale: Locale,
+  value: LocalizedValue<T>,
   fallback: string,
 ) {
-  return settings && value != null ? value : fallback;
+  return resolveLocalizedString(value as LocalizedValue<string>, locale, fallback);
 }
 
 function getImageSource(
@@ -243,19 +221,73 @@ function getImageSource(
     : fallback;
 }
 
-export default async function Home() {
+function localizeHref(locale: Locale, href?: string) {
+  if (!href) {
+    return localizedPath(locale);
+  }
+
+  if (href.startsWith("#")) {
+    return `${localizedPath(locale)}/${href}`;
+  }
+
+  if (href.startsWith("/en") || href.startsWith("/no")) {
+    return href;
+  }
+
+  if (href.startsWith("/")) {
+    return localizedPath(locale, href);
+  }
+
+  return href;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{locale: string}>;
+}): Promise<Metadata> {
+  const {locale: localeParam} = await params;
+  const locale = isLocale(localeParam) ? localeParam : "en";
+  const dictionary = getDictionary(locale);
+
+  return {
+    title: dictionary.site.title,
+    description: dictionary.site.description,
+    alternates: {
+      canonical: absoluteUrl(`/${locale}`),
+      languages: localeAlternates(""),
+    },
+  };
+}
+
+export default async function Home({
+  params,
+}: {
+  params: Promise<{locale: string}>;
+}) {
+  const {locale: localeParam} = await params;
+  const locale = isLocale(localeParam) ? localeParam : "en";
+  const dictionary = getDictionary(locale);
   const {settings, featuredRecipes: sanityFeaturedRecipes} =
     await client.fetch<HomepageData>(homepageQuery);
   const heroLines = settings
     ? [
-        settings.homepageHeroLine1,
-        settings.homepageHeroLine2,
-        settings.homepageHeroLine3,
+        resolveLocalizedString(settings.homepageHeroLine1, locale),
+        resolveLocalizedString(settings.homepageHeroLine2, locale),
+        resolveLocalizedString(settings.homepageHeroLine3, locale),
       ].filter(hasText)
-    : [defaultHero.line1, defaultHero.line2, defaultHero.line3];
-  const heroIntro = settings?.homepageHeroIntro ?? defaultHero.intro;
-  const heroCtaLabel = settings?.homepageHeroCtaLabel ?? defaultHero.ctaLabel;
-  const heroCtaHref = settings?.homepageHeroCtaHref ?? defaultHero.ctaHref;
+    : dictionary.homepage.hero.lines;
+  const heroIntro = resolveLocalizedString(
+    settings?.homepageHeroIntro,
+    locale,
+    dictionary.homepage.hero.intro,
+  );
+  const heroCtaLabel = resolveLocalizedString(
+    settings?.homepageHeroCtaLabel,
+    locale,
+    dictionary.homepage.hero.ctaLabel,
+  );
+  const heroCtaHref = settings?.homepageHeroCtaHref ?? "#recipes";
   const heroPortrait = settings?.homepageHeroPortrait?.asset
     ? {
         src: urlFor(settings.homepageHeroPortrait)
@@ -279,74 +311,70 @@ export default async function Home() {
       ? settings.homepageCategoryCards
       : categories;
   const recipesEyebrow = getSetting(
-    settings,
+    locale,
     settings?.homepageRecipesEyebrow,
-    defaultHomepageCopy.recipesEyebrow,
+    dictionary.homepage.recipesEyebrow,
   );
   const recipesHeading = getSetting(
-    settings,
+    locale,
     settings?.homepageRecipesHeading,
-    defaultHomepageCopy.recipesHeading,
+    dictionary.homepage.recipesHeading,
   );
   const recipesCtaLabel = getSetting(
-    settings,
+    locale,
     settings?.homepageRecipesCtaLabel,
-    defaultHomepageCopy.recipesCtaLabel,
+    dictionary.homepage.recipesCtaLabel,
   );
-  const recipesCtaHref = getSetting(
-    settings,
-    settings?.homepageRecipesCtaHref,
-    defaultHomepageCopy.recipesCtaHref,
-  );
+  const recipesCtaHref = settings?.homepageRecipesCtaHref ?? "#newsletter";
   const categoriesEyebrow = getSetting(
-    settings,
+    locale,
     settings?.homepageCategoriesEyebrow,
-    defaultHomepageCopy.categoriesEyebrow,
+    dictionary.homepage.categoriesEyebrow,
   );
   const categoriesHeading = getSetting(
-    settings,
+    locale,
     settings?.homepageCategoriesHeading,
-    defaultHomepageCopy.categoriesHeading,
+    dictionary.homepage.categoriesHeading,
   );
   const aboutEyebrow = getSetting(
-    settings,
+    locale,
     settings?.homepageAboutEyebrow,
-    defaultHomepageCopy.aboutEyebrow,
+    dictionary.homepage.aboutEyebrow,
   );
   const aboutHeading = getSetting(
-    settings,
+    locale,
     settings?.homepageAboutHeading,
-    defaultHomepageCopy.aboutHeading,
+    dictionary.homepage.aboutHeading,
   );
   const aboutText = getSetting(
-    settings,
+    locale,
     settings?.homepageAboutText,
-    defaultHomepageCopy.aboutText,
+    dictionary.homepage.aboutText,
   );
   const newsletterEyebrow = getSetting(
-    settings,
+    locale,
     settings?.homepageNewsletterEyebrow,
-    defaultHomepageCopy.newsletterEyebrow,
+    dictionary.homepage.newsletterEyebrow,
   );
   const newsletterHeading = getSetting(
-    settings,
+    locale,
     settings?.homepageNewsletterHeading,
-    defaultHomepageCopy.newsletterHeading,
+    dictionary.homepage.newsletterHeading,
   );
   const newsletterText = getSetting(
-    settings,
+    locale,
     settings?.homepageNewsletterText,
-    defaultHomepageCopy.newsletterText,
+    dictionary.homepage.newsletterText,
   );
   const newsletterButtonLabel = getSetting(
-    settings,
+    locale,
     settings?.homepageNewsletterButtonLabel,
-    defaultHomepageCopy.newsletterButtonLabel,
+    dictionary.homepage.newsletterButtonLabel,
   );
 
   return (
     <main className="min-h-screen bg-[#c7391f] text-[#240B36]">
-      <SiteHeader />
+      <SiteHeader locale={locale} labels={dictionary.nav} />
       <section className="relative isolate overflow-hidden border-b-4 border-[#240B36] bg-[#e55224]">
         <div className="absolute inset-0 -z-10 opacity-25 bg-[linear-gradient(90deg,#240B36_1px,transparent_1px),linear-gradient(#240B36_1px,transparent_1px)] bg-[size:42px_42px]" />
         <div className="mx-auto flex min-h-[88vh] max-w-7xl px-5 pb-20 pt-6 sm:px-8 sm:pb-28 lg:pb-32 lg:pt-10">
@@ -388,7 +416,7 @@ export default async function Home() {
                 ) : null}
                 {hasText(heroCtaLabel) && hasText(heroCtaHref) ? (
                   <a
-                    href={heroCtaHref}
+                    href={localizeHref(locale, heroCtaHref)}
                     className="mt-8 inline-flex border-2 border-[#240B36] bg-[#ffd447] px-6 py-3 text-sm font-black uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]"
                   >
                     {heroCtaLabel}
@@ -420,7 +448,7 @@ export default async function Home() {
             </div>
             {hasText(recipesCtaLabel) && hasText(recipesCtaHref) ? (
               <a
-                href={recipesCtaHref}
+                href={localizeHref(locale, recipesCtaHref)}
                 className="inline-flex w-fit border-2 border-[#240B36] bg-[#ffd447] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]"
               >
                 {recipesCtaLabel}
@@ -430,9 +458,14 @@ export default async function Home() {
 
           <div className="grid gap-6 lg:grid-cols-3">
             {displayedRecipes.map((recipe) => {
+              const title = resolveLocalizedString(recipe.title, locale);
+              const description = resolveLocalizedString(
+                recipe.description,
+                locale,
+              );
               const href =
                 "slug" in recipe && recipe.slug
-                  ? `/recipes/${recipe.slug}`
+                  ? localizedPath(locale, `/recipes/${recipe.slug}`)
                   : recipe.href;
               const time =
                 recipe.time ||
@@ -449,20 +482,20 @@ export default async function Home() {
                   ? recipe.image.alt
                   : recipe.alt;
 
-              if (!recipe.title || !href || !image) {
+              if (!title || !href || !image) {
                 return null;
               }
 
               return (
               <Link
-                key={recipe.title}
-                href={href}
+                key={title}
+                href={localizeHref(locale, href)}
                 className="group block border-4 border-[#240B36] bg-[#f77f1f] shadow-[8px_8px_0_#240B36] transition duration-200 hover:-translate-y-2 hover:shadow-[12px_12px_0_#240B36]"
               >
                 <div className="relative aspect-[4/3] overflow-hidden border-b-4 border-[#240B36]">
                   <Image
                     src={image}
-                    alt={imageAlt || recipe.title}
+                    alt={imageAlt || title}
                     fill
                     sizes="(min-width: 1024px) 31vw, 90vw"
                     className="object-cover transition duration-300 group-hover:scale-105"
@@ -487,11 +520,11 @@ export default async function Home() {
                     ) : null}
                   </div>
                   <h3 className="text-3xl font-black lowercase leading-[1.8rem]">
-                    {recipe.title}
+                    {title}
                   </h3>
-                  {recipe.description ? (
+                  {description ? (
                     <p className="mt-4 text-base font-normal leading-[1.575rem]">
-                      {recipe.description}
+                      {description}
                     </p>
                   ) : null}
                 </div>
@@ -522,6 +555,9 @@ export default async function Home() {
 
           <div className="grid gap-5 md:grid-cols-2">
             {displayedCategories.map((category) => {
+              const title =
+                resolveLocalizedString(category.title, locale) || category.name;
+              const copy = resolveLocalizedString(category.copy, locale);
               const image =
                 typeof category.image === "string"
                   ? category.image
@@ -531,21 +567,21 @@ export default async function Home() {
                   ? category.image.alt
                   : category.alt;
 
-              if (!category.title && !category.name) {
+              if (!title) {
                 return null;
               }
 
               return (
               <Link
-                key={category.title || category.name}
-                href={category.href || "/search"}
+                key={title}
+                href={localizeHref(locale, category.href || "/search")}
                 className="group grid border-4 border-[#240B36] bg-[#fff3c7] transition duration-200 hover:-translate-y-2 hover:shadow-[10px_10px_0_#240B36] md:grid-cols-[0.85fr_1fr]"
               >
                 {image ? (
                   <div className="relative min-h-56 overflow-hidden border-b-4 border-[#240B36] md:border-b-0 md:border-r-4">
                     <Image
                       src={image}
-                      alt={imageAlt || category.title || category.name || "Category"}
+                      alt={imageAlt || title || "Category"}
                       fill
                       sizes="(min-width: 768px) 24vw, 90vw"
                       className="object-cover transition duration-300 group-hover:scale-105"
@@ -554,11 +590,11 @@ export default async function Home() {
                 ) : null}
                 <div className="p-5">
                   <h3 className="font-serif text-4xl font-black lowercase leading-[0.9]">
-                    {category.title || category.name}
+                    {title}
                   </h3>
-                  {category.copy ? (
+                  {copy ? (
                     <p className="mt-3 text-base font-normal leading-[1.575rem]">
-                      {category.copy}
+                      {copy}
                     </p>
                   ) : null}
                 </div>

@@ -20,9 +20,18 @@ const structure: StructureResolver = (S) =>
             .documentId("siteSettings")
             .title("Site Settings"),
         ),
+      S.listItem()
+        .title("About Page")
+        .id("aboutPage")
+        .child(
+          S.document()
+            .schemaType("aboutPage")
+            .documentId("aboutPage")
+            .title("About Page"),
+        ),
       S.divider(),
       ...S.documentTypeListItems().filter(
-        (item) => item.getId() !== "siteSettings",
+        (item) => !["siteSettings", "aboutPage"].includes(item.getId() || ""),
       ),
     ]);
 
@@ -35,12 +44,16 @@ export default defineConfig({
   schema: {
     types: schemaTypes,
     templates: (templates) =>
-      templates.filter(({schemaType}) => schemaType !== "siteSettings"),
+      templates.filter(
+        ({schemaType}) => !["siteSettings", "aboutPage"].includes(schemaType),
+      ),
   },
   document: {
     actions: (actions, context) =>
       context.schemaType === "siteSettings"
         ? actions.filter(({action}) => action && singletonActions.has(action))
+        : context.schemaType === "aboutPage"
+          ? actions.filter(({action}) => action && singletonActions.has(action))
         : actions,
   },
   plugins: [structureTool({structure}), visionTool({defaultApiVersion: apiVersion})],

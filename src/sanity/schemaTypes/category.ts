@@ -1,32 +1,27 @@
 import {defineField, defineType} from "sanity";
 
+import {
+  localizedStringField,
+  localizedTextField,
+} from "@/sanity/schemaTypes/localized";
+
 export const categoryType = defineType({
   name: "category",
   title: "Category",
   type: "document",
   fields: [
-    defineField({
-      name: "name",
-      title: "Category name",
-      type: "string",
-      validation: (rule) => rule.required(),
-    }),
+    localizedStringField("name", "Category name"),
     defineField({
       name: "slug",
       title: "Slug",
       type: "slug",
       options: {
-        source: "name",
+        source: "name.en",
         maxLength: 96,
       },
       validation: (rule) => rule.required(),
     }),
-    defineField({
-      name: "description",
-      title: "Description",
-      type: "text",
-      rows: 4,
-    }),
+    localizedTextField("description", "Description", {rows: 4}),
     defineField({
       name: "heroImage",
       title: "Hero image",
@@ -48,6 +43,15 @@ export const categoryType = defineType({
     select: {
       title: "name",
       media: "heroImage",
+    },
+    prepare({title, media}) {
+      const resolvedTitle =
+        typeof title === "object" && title ? title.en : title;
+
+      return {
+        title: resolvedTitle || "Category",
+        media,
+      };
     },
   },
 });

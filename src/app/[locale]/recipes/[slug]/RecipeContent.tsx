@@ -4,6 +4,8 @@ import Image from "next/image";
 import {PortableText} from "next-sanity";
 import {useEffect, useMemo, useState} from "react";
 
+import type {Dictionary} from "@/i18n/dictionaries";
+
 type PortableBlock = {
   _key: string;
   _type: "block";
@@ -21,7 +23,6 @@ type Ingredient = {
 type MethodStep = {
   _key: string;
   content?: PortableBlock[];
-  ingredients?: Ingredient[];
 };
 
 type GalleryImage = {
@@ -30,6 +31,7 @@ type GalleryImage = {
 };
 
 type RecipeContentProps = {
+  dictionary: Dictionary["recipe"];
   baseServings: number;
   ingredients?: Ingredient[];
   methodSteps?: MethodStep[];
@@ -124,7 +126,15 @@ function IngredientRows({
   );
 }
 
-function TikTokEmbed({url}: {url?: string}) {
+function TikTokEmbed({
+  url,
+  fallback,
+  watchLabel,
+}: {
+  url?: string;
+  fallback: string;
+  watchLabel: string;
+}) {
   useEffect(() => {
     if (!url) {
       return;
@@ -153,7 +163,7 @@ function TikTokEmbed({url}: {url?: string}) {
   if (!url) {
     return (
       <p className="max-w-md text-2xl font-normal">
-        TikTok embed appears here when the recipe has a video URL.
+        {fallback}
       </p>
     );
   }
@@ -167,13 +177,14 @@ function TikTokEmbed({url}: {url?: string}) {
       {...(videoId ? {"data-video-id": videoId} : {})}
     >
       <section>
-        <a href={url}>Watch this recipe on TikTok</a>
+        <a href={url}>{watchLabel}</a>
       </section>
     </blockquote>
   );
 }
 
 export function RecipeContent({
+  dictionary,
   baseServings,
   ingredients,
   methodSteps,
@@ -190,16 +201,16 @@ export function RecipeContent({
         <aside className="h-fit min-w-0 border-4 border-[#240B36] bg-[#f77f1f] p-4 shadow-[6px_6px_0_#240B36] sm:p-5 sm:shadow-[8px_8px_0_#240B36] lg:sticky lg:top-28">
           <div className="mb-5 flex flex-wrap gap-3">
             <button className="border-2 border-[#240B36] bg-[#ffd447] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]">
-              print recipe
+              {dictionary.printRecipe}
             </button>
             <button className="border-2 border-[#240B36] bg-[#fff3c7] px-4 py-3 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]">
-              cooking mode
+              {dictionary.cookingMode}
             </button>
           </div>
 
           <div className="mb-5 border-2 border-[#240B36] bg-[#fff3c7] p-4">
             <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
-              servings scaler
+              {dictionary.servingsScaler}
             </p>
             <div className="mt-3 flex items-center gap-3">
               <button
@@ -225,37 +236,32 @@ export function RecipeContent({
           </div>
 
           <h2 className="font-serif text-4xl font-black lowercase leading-[0.9]">
-            ingredients
+            {dictionary.ingredients}
           </h2>
           <IngredientRows ingredients={ingredients} scale={scale} />
         </aside>
 
         <div className="min-w-0 space-y-8">
           <section>
-            <div className="mb-5 border-b-4 border-[#240B36] pb-4">
+            <div className="mb-5">
               <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
-                step by step
+                {dictionary.methodEyebrow}
               </p>
               <h2 className="font-serif text-5xl font-black lowercase leading-[0.9]">
-                method
+                {dictionary.method}
               </h2>
             </div>
             <ol className="border-4 border-[#240B36] bg-white p-4 shadow-[6px_6px_0_#240B36] sm:p-6 sm:shadow-[8px_8px_0_#240B36]">
               {methodSteps?.map((step, index) => (
                 <li
                   key={step._key}
-                  className="grid gap-4 border-b-2 border-[#240B36] py-6 first:pt-0 last:border-b-0 last:pb-0 md:grid-cols-[4rem_1fr]"
+                  className="grid gap-4 border-b-2 border-[#240B36] py-6 first:pt-0 last:border-b-0 last:pb-0 md:grid-cols-[2.5rem_1fr]"
                 >
-                  <span className="flex h-14 w-14 items-center justify-center border-2 border-[#240B36] bg-[#c7391f] text-2xl font-black text-[#fff3c7]">
+                  <span className="flex h-9 w-9 items-center justify-center border-2 border-[#240B36] bg-[#c7391f] text-base font-black text-[#fff3c7]">
                     {index + 1}
                   </span>
                   <div className="min-w-0 text-lg font-normal leading-[1.8rem]">
                     {step.content ? <PortableText value={step.content} /> : null}
-                    <IngredientRows
-                      ingredients={step.ingredients}
-                      scale={scale}
-                      compact
-                    />
                   </div>
                 </li>
               ))}
@@ -265,7 +271,7 @@ export function RecipeContent({
           {tipsAndNotes?.length ? (
             <section className="border-4 border-[#240B36] bg-[#e55224] p-5 text-[#fff3c7]">
               <h2 className="font-serif text-4xl font-black lowercase leading-[0.9]">
-                tips & notes
+                {dictionary.tipsNotes}
               </h2>
               <div className="mt-4 space-y-3 text-lg font-normal leading-[1.8rem]">
                 <PortableText value={tipsAndNotes} />
@@ -292,10 +298,14 @@ export function RecipeContent({
 
           <section className="border-4 border-[#240B36] bg-[#240B36] p-5 text-[#fff3c7]">
             <p className="text-sm font-medium uppercase leading-[0.9] text-[#ffd447]">
-              tiktok
+              {dictionary.tiktok}
             </p>
             <div className="mt-4 flex min-h-64 min-w-0 items-center justify-center overflow-hidden border-2 border-dashed border-[#ffd447] p-4 text-center sm:p-6">
-              <TikTokEmbed url={tiktokUrl} />
+              <TikTokEmbed
+                url={tiktokUrl}
+                fallback={dictionary.tiktokFallback}
+                watchLabel={dictionary.watchOnTiktok}
+              />
             </div>
           </section>
         </div>
