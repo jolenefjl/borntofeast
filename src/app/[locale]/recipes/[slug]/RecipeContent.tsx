@@ -564,7 +564,9 @@ export function RecipeContent({
             </section>
           ) : null}
 
-          <GalleryLightbox images={gallery} dictionary={dictionary} />
+          {gallery.length ? (
+            <GalleryLightbox images={gallery} dictionary={dictionary} />
+          ) : null}
 
           {lifeStory?.length ? (
             <section className="border-y-4 border-[#240B36] py-6 sm:py-8">

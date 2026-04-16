@@ -26,21 +26,6 @@ type RecipePageProps = {
 const fallbackHeroImage =
   "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=1400&q=85";
 
-const fallbackGallery = [
-  {
-    src: "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=900&q=85",
-    alt: "A colorful bowl of fried rice with vegetables",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1590301157890-4810ed352733?auto=format&fit=crop&w=900&q=85",
-    alt: "Kimchi and Korean side dishes on a table",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=900&q=85",
-    alt: "Fried rice served in a pan with herbs",
-  },
-];
-
 export type PortableBlock = {
   _key: string;
   _type: string;
@@ -348,7 +333,7 @@ export default async function RecipePage({params}: RecipePageProps) {
             src: urlFor(image).width(900).height(700).fit("crop").url(),
             alt: image.alt || normalizedRecipe.title,
           }))
-      : fallbackGallery;
+      : [];
   const displayIngredients = (
     normalizedRecipe.ingredientGroups?.length
       ? normalizedRecipe.ingredientGroups.flatMap((group) => group.ingredients || [])
