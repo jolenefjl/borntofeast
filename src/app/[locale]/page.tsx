@@ -134,6 +134,10 @@ type RecipeCard = {
   title?: LocalizedValue<string>;
   href?: string;
   slug?: string;
+  localizedSlug?: {
+    en?: {current?: string};
+    no?: {current?: string};
+  };
   cuisine?: LocalizedValue<string>;
   difficulty?: string;
   time?: string;
@@ -190,6 +194,7 @@ const homepageQuery = `{
     featuredRecipes[]->{
       title,
       "slug": slug.current,
+      localizedSlug,
       "cuisine": coalesce(cuisine->name, cuisineType),
       difficulty,
       prepTime,
@@ -201,6 +206,7 @@ const homepageQuery = `{
   "featuredRecipes": *[_type == "recipe" && featured == true] | order(publishedAt desc)[0...4]{
     title,
     "slug": slug.current,
+    localizedSlug,
     "cuisine": coalesce(cuisine->name, cuisineType),
     difficulty,
     prepTime,
@@ -398,13 +404,13 @@ export default async function Home({
       />
       <section className="relative isolate overflow-hidden border-b-4 border-[#240B36] bg-[#e55224]">
         <div className="absolute inset-0 -z-10 opacity-25 bg-[linear-gradient(90deg,#240B36_1px,transparent_1px),linear-gradient(#240B36_1px,transparent_1px)] bg-[size:42px_42px]" />
-        <div className="mx-auto flex min-h-[72vh] max-w-7xl px-4 pb-14 pt-4 sm:min-h-[88vh] sm:px-8 sm:pb-28 lg:pb-32 lg:pt-10">
+        <div className="mx-auto flex max-w-7xl px-4 py-14 sm:px-8 sm:py-24 lg:py-28">
           <div className="flex w-full flex-col gap-6">
             <div
               className={
                 heroPortrait
-                  ? "mt-10 grid max-w-6xl gap-6 sm:mt-24 sm:gap-8 lg:mt-28 lg:grid-cols-[minmax(220px,0.38fr)_1fr] lg:items-center"
-                  : "mt-10 max-w-6xl sm:mt-24 lg:mt-28"
+                  ? "grid max-w-6xl gap-6 sm:gap-8 lg:grid-cols-[minmax(220px,0.34fr)_1fr] lg:items-center"
+                  : "max-w-6xl"
               }
             >
               {heroPortrait ? (
@@ -422,7 +428,7 @@ export default async function Home({
 
               <div>
                 {heroLines.length ? (
-                  <h1 className="font-serif text-5xl font-bold lowercase leading-[0.95] sm:text-7xl sm:leading-[0.9] lg:text-8xl">
+                  <h1 className="font-serif text-5xl font-bold lowercase leading-[0.95] sm:text-7xl sm:leading-[0.9] lg:max-w-5xl lg:text-7xl">
                     {heroLines.map((line, index) => (
                       <span key={`${line}-${index}`} className="block">
                         {line}
@@ -484,7 +490,12 @@ export default async function Home({
               );
               const href =
                 "slug" in recipe && recipe.slug
-                  ? localizedPath(locale, `/recipes/${recipe.slug}`)
+                  ? localizedPath(
+                      locale,
+                      `/recipes/${
+                        recipe.localizedSlug?.[locale]?.current || recipe.slug
+                      }`,
+                    )
                   : recipe.href;
               const time =
                 recipe.time ||

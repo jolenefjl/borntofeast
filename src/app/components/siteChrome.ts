@@ -99,12 +99,7 @@ export async function getSiteChrome(
   );
   const fallbackNavigation = [
     {label: dictionary.nav.recipes, href: localizedPath(locale, "/recipes")},
-    {
-      label: dictionary.nav.ingredients,
-      href: localizedPath(locale, "/recipes"),
-    },
     {label: dictionary.nav.about, href: localizedPath(locale, "/about")},
-    {label: dictionary.nav.search, href: localizedPath(locale, "/search")},
   ];
   const fallbackFooterLinks = [
     {label: dictionary.nav.recipes, href: localizedPath(locale, "/recipes")},

@@ -29,7 +29,6 @@ export function SiteHeader({locale, labels, navigationItems}: SiteHeaderProps) {
       ? navigationItems
       : [
           {label: labels.recipes, href: localizedPath(locale, "/recipes")},
-          {label: labels.ingredients, href: localizedPath(locale, "/recipes")},
           {label: labels.about, href: localizedPath(locale, "/about")},
         ];
 

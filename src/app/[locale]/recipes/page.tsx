@@ -32,7 +32,11 @@ type RecipeListPageProps = {
 
 type RecipeListItem = {
   title?: LocalizedValue<string>;
-  slug?: string;
+  sharedSlug?: string;
+  localizedSlug?: {
+    en?: {current?: string};
+    no?: {current?: string};
+  };
   cuisine?: {
     name?: LocalizedValue<string>;
     slug?: {current?: string};
@@ -47,6 +51,9 @@ type RecipeListItem = {
     name?: LocalizedValue<string>;
     filterKey?: string;
   }[];
+  methodSteps?: {
+    content?: LocalizedValue<unknown[]>;
+  }[];
 };
 
 type FilterOption = {
@@ -56,7 +63,8 @@ type FilterOption = {
 
 const recipesQuery = `*[_type == "recipe" && defined(slug.current)] | order(publishedAt desc){
   title,
-  "slug": slug.current,
+  "sharedSlug": slug.current,
+  localizedSlug,
   cuisine->{name, slug},
   cuisineType,
   difficulty,
@@ -64,7 +72,8 @@ const recipesQuery = `*[_type == "recipe" && defined(slug.current)] | order(publ
   cookTime,
   intro,
   heroImage,
-  ingredients[]{name, filterKey}
+  ingredients[]{name, filterKey},
+  methodSteps[]{content}
 }`;
 
 function slugify(value: string) {
@@ -77,10 +86,13 @@ function slugify(value: string) {
 
 function normalizeRecipe(recipe: RecipeListItem, locale: Locale) {
   const title = resolveLocalizedString(recipe.title, locale);
+  const slug =
+    recipe.localizedSlug?.[locale]?.current || recipe.sharedSlug || "";
+  const legacyCuisineFallback = locale === "en" ? recipe.cuisineType || "" : "";
   const cuisineName = resolveLocalizedString(
     recipe.cuisine?.name,
     locale,
-    recipe.cuisineType || "",
+    legacyCuisineFallback,
   );
   const cuisineKey = recipe.cuisine?.slug?.current || slugify(cuisineName);
   const intro = richTextToPlainText(resolveLocalized(recipe.intro, locale));
@@ -91,17 +103,40 @@ function normalizeRecipe(recipe: RecipeListItem, locale: Locale) {
         value: ingredient.filterKey || "",
       }))
       .filter((ingredient) => ingredient.label && ingredient.value) || [];
+  const methodStepCount =
+    recipe.methodSteps?.filter(
+      (step) => (resolveLocalized<unknown[]>(step.content, locale, []) || []).length,
+    ).length || 0;
   const totalTime = (recipe.prepTime || 0) + (recipe.cookTime || 0);
 
   return {
     ...recipe,
     title,
+    slug,
     cuisineName,
     cuisineKey,
     intro,
     ingredients,
+    methodStepCount,
     totalTime,
   };
+}
+
+function isRecipeVisibleForLocale(
+  recipe: ReturnType<typeof normalizeRecipe>,
+  locale: Locale,
+) {
+  if (!recipe.title || !recipe.slug) {
+    return false;
+  }
+
+  if (locale === "no") {
+    return Boolean(
+      recipe.cuisineName && recipe.ingredients.length > 0 && recipe.methodStepCount > 0,
+    );
+  }
+
+  return true;
 }
 
 function uniqueOptions(options: FilterOption[]) {
@@ -193,7 +228,7 @@ export default async function RecipesPage({
   ]);
   const normalizedRecipes = recipes
     .map((recipe) => normalizeRecipe(recipe, locale))
-    .filter((recipe) => recipe.title && recipe.slug);
+    .filter((recipe) => isRecipeVisibleForLocale(recipe, locale));
   const cuisineOptions = uniqueOptions(
     normalizedRecipes
       .filter((recipe) => recipe.cuisineName && recipe.cuisineKey)

@@ -33,8 +33,7 @@ type AboutPageDocument = {
   valuesTitle?: LocalizedValue<string>;
   values?: {
     title?: LocalizedValue<string>;
-    href?: string;
-    copy?: LocalizedValue<string>;
+    copy?: LocalizedValue<RichTextValue>;
   }[];
   nextEyebrow?: LocalizedValue<string>;
   nextTitle?: LocalizedValue<string>;
@@ -145,11 +144,13 @@ export default async function AboutPage({
     ? aboutPage.values
         .map((value) => ({
           title: resolveLocalizedString(value.title, locale),
-          href: value.href || "/search",
-          copy: resolveLocalizedString(value.copy, locale),
+          copy: resolveLocalized<RichTextValue>(value.copy, locale),
         }))
         .filter((value) => value.title)
-    : about.values;
+    : about.values.map((value) => ({
+        title: value.title,
+        copy: paragraphsToRichText([value.copy]),
+      }));
   const nextEyebrow = resolveLocalizedString(
     aboutPage?.nextEyebrow,
     locale,
@@ -250,18 +251,18 @@ export default async function AboutPage({
 
           <div className="grid gap-5 lg:grid-cols-3">
             {values.map((value) => (
-              <Link
+              <article
                 key={value.title}
-                href={localizeHref(locale, value.href)}
-                className="block border-4 border-[#240B36] bg-[#f77f1f] p-4 shadow-[6px_6px_0_#240B36] transition duration-200 hover:-translate-y-2 hover:shadow-[12px_12px_0_#240B36] sm:p-6 sm:shadow-[8px_8px_0_#240B36]"
+                className="border-4 border-[#240B36] bg-[#f77f1f] p-4 shadow-[6px_6px_0_#240B36] sm:p-6 sm:shadow-[8px_8px_0_#240B36]"
               >
                 <h3 className="font-serif text-3xl font-black lowercase leading-[0.95] sm:text-4xl sm:leading-[0.9]">
                   {value.title}
                 </h3>
-                <p className="mt-3 text-base font-normal leading-[1.6rem] sm:mt-4 sm:text-lg sm:leading-[1.8rem]">
-                  {value.copy}
-                </p>
-              </Link>
+                <RichText
+                  value={value.copy}
+                  className="mt-3 space-y-3 text-base font-normal leading-[1.6rem] sm:mt-4 sm:text-lg sm:leading-[1.8rem]"
+                />
+              </article>
             ))}
           </div>
         </div>

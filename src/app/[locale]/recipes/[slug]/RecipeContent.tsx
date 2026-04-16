@@ -30,12 +30,20 @@ type GalleryImage = {
   alt: string;
 };
 
+type GuidanceCard = {
+  _key: string;
+  title: string;
+  body?: PortableBlock[];
+  image: GalleryImage | null;
+};
+
 type RecipeContentProps = {
   dictionary: Dictionary["recipe"];
   baseServings: number;
   ingredients?: Ingredient[];
   methodSteps?: MethodStep[];
   tipsAndNotes?: PortableBlock[];
+  guidanceCards?: GuidanceCard[];
   gallery: GalleryImage[];
   tiktokUrl?: string;
 };
@@ -190,6 +198,7 @@ export function RecipeContent({
   ingredients,
   methodSteps,
   tipsAndNotes,
+  guidanceCards,
   gallery,
   tiktokUrl,
 }: RecipeContentProps) {
@@ -269,6 +278,48 @@ export function RecipeContent({
               ))}
             </ol>
           </section>
+
+          {guidanceCards?.length ? (
+            <section className="border-4 border-[#240B36] bg-[#ffd447] p-4 shadow-[5px_5px_0_#240B36] sm:p-5 sm:shadow-[8px_8px_0_#240B36]">
+              <p className="text-sm font-medium uppercase leading-[0.9] text-[#c7391f]">
+                {dictionary.guidanceEyebrow}
+              </p>
+              <h2 className="mt-2 font-serif text-3xl font-black lowercase leading-[0.95] sm:text-4xl sm:leading-[0.9]">
+                {dictionary.guidance}
+              </h2>
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                {guidanceCards.map((card) =>
+                  card.image ? (
+                    <article
+                      key={card._key}
+                      className="border-2 border-[#240B36] bg-[#fff3c7]"
+                    >
+                      <div className="relative aspect-[4/3] border-b-2 border-[#240B36]">
+                        <Image
+                          src={card.image.src}
+                          alt={card.image.alt || card.title}
+                          fill
+                          sizes="(min-width: 768px) 32vw, 90vw"
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-serif text-2xl font-black lowercase leading-[0.95] sm:text-3xl sm:leading-[0.9]">
+                          {card.title}
+                        </h3>
+                        {card.body?.length ? (
+                          <RichText
+                            value={card.body}
+                            className="mt-3 space-y-3 text-base font-normal leading-[1.6rem]"
+                          />
+                        ) : null}
+                      </div>
+                    </article>
+                  ) : null,
+                )}
+              </div>
+            </section>
+          ) : null}
 
           {tipsAndNotes?.length ? (
             <section className="border-4 border-[#240B36] bg-[#e55224] p-4 text-[#fff3c7] sm:p-5">

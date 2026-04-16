@@ -94,7 +94,9 @@ export const recipeType = defineType({
     localizedStringField("title", "Recipe title"),
     defineField({
       name: "slug",
-      title: "Slug",
+      title: "Shared slug",
+      description:
+        "Current public recipe URL slug used for both languages. Keep this stable until localized slugs are ready to replace it.",
       type: "slug",
       options: {
         source: "title.en",
@@ -103,10 +105,31 @@ export const recipeType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: "cuisine",
-      title: "Cuisine",
+      name: "localizedSlug",
+      title: "Localized slugs",
       description:
-        "Preferred for filtering and editor-friendly taxonomy. Keep the legacy cuisine type filled until existing content is migrated.",
+        "Optional future-ready URL slugs per language. Shared slug still works as the fallback for phase 1.",
+      type: "object",
+      fields: [
+        defineField({
+          name: "en",
+          title: "English slug",
+          type: "slug",
+          options: {source: "title.en", maxLength: 96},
+        }),
+        defineField({
+          name: "no",
+          title: "Norwegian slug",
+          type: "slug",
+          options: {source: "title.no", maxLength: 96},
+        }),
+      ],
+    }),
+    defineField({
+      name: "cuisine",
+      title: "Localized cuisine",
+      description:
+        "Preferred cuisine taxonomy for filtering and bilingual display. Create or select a Cuisine document with English and Norwegian names.",
       type: "reference",
       to: [{type: "cuisine"}],
     }),
@@ -262,6 +285,59 @@ export const recipeType = defineType({
     localizedRichTextField("tipsAndNotes", "Tips & notes", {
       description:
         "Use this for extra context, substitutions, storage notes, or serving ideas.",
+    }),
+    defineField({
+      name: "guidanceCards",
+      title: "Recipe guidance photo cards",
+      description:
+        "Optional cooking-help cards for this recipe only, such as texture cues, folding/rolling notes, doneness checks, or prep visuals. Leave empty to show nothing.",
+      type: "array",
+      of: [
+        defineArrayMember({
+          name: "recipeGuidanceCard",
+          title: "Recipe guidance card",
+          type: "object",
+          fields: [
+            defineField({
+              name: "image",
+              title: "Guidance image",
+              description: "Use a specific visual cue that helps with this recipe.",
+              type: "image",
+              options: {hotspot: true},
+              fields: [
+                defineField({
+                  name: "alt",
+                  title: "Alt text",
+                  type: "string",
+                  validation: (rule) => rule.required(),
+                }),
+              ],
+              validation: (rule) => rule.required(),
+            }),
+            localizedStringField("title", "Guidance title", {
+              description:
+                "Short recipe-help title, for example Sauce texture, Fold like this, or When the rice is ready.",
+            }),
+            localizedRichTextField("body", "Guidance body", {
+              description:
+                "Optional supporting copy for the visual cue. Keep this practical and recipe-specific.",
+              simple: true,
+            }),
+          ],
+          preview: {
+            select: {
+              title: "title.en",
+              media: "image",
+            },
+            prepare({title, media}) {
+              return {
+                title: title || "Recipe guidance card",
+                media,
+              };
+            },
+          },
+        }),
+      ],
     }),
     defineField({
       name: "tiktokUrl",

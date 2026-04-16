@@ -43,6 +43,8 @@ export const no = {
     ingredients: "ingredienser",
     methodEyebrow: "steg for steg",
     method: "fremgangsmåte",
+    guidanceEyebrow: "se etter dette",
+    guidance: "koketips",
     tipsNotes: "tips og notater",
     tiktok: "tiktok",
     tiktokFallback: "TikTok-video vises her når oppskriften har en video-URL.",

@@ -43,6 +43,8 @@ export const en = {
     ingredients: "ingredients",
     methodEyebrow: "step by step",
     method: "method",
+    guidanceEyebrow: "watch for this",
+    guidance: "cooking cues",
     tipsNotes: "tips & notes",
     tiktok: "tiktok",
     tiktokFallback: "TikTok embed appears here when the recipe has a video URL.",

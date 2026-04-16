@@ -3,7 +3,6 @@ import {defineArrayMember, defineField, defineType} from "sanity";
 import {
   localizedRichTextField,
   localizedStringField,
-  localizedTextField,
 } from "@/sanity/schemaTypes/localized";
 
 export const aboutPageType = defineType({
@@ -44,15 +43,17 @@ export const aboutPageType = defineType({
           type: "object",
           fields: [
             localizedStringField("title", "Title"),
-            defineField({name: "href", title: "Link", type: "string"}),
-            localizedTextField("copy", "Copy", {rows: 3}),
+            localizedRichTextField("copy", "Copy", {
+              description:
+                "Short supporting body copy for this static kitchen rule card.",
+              simple: true,
+            }),
           ],
           preview: {
-            select: {title: "title", subtitle: "href"},
-            prepare({title, subtitle}) {
+            select: {title: "title"},
+            prepare({title}) {
               return {
                 title: title?.en || "Value card",
-                subtitle,
               };
             },
           },

@@ -9,7 +9,7 @@ import {RecipeContent} from "./RecipeContent";
 import {isLocale, type Locale} from "@/i18n/config";
 import {getDictionary} from "@/i18n/dictionaries";
 import {resolveLocalized, resolveLocalizedString, type LocalizedValue} from "@/i18n/localized";
-import {absoluteUrl, localeAlternates} from "@/i18n/urls";
+import {absoluteUrl} from "@/i18n/urls";
 import {client} from "@/sanity/lib/client";
 import {urlFor} from "@/sanity/lib/image";
 
@@ -48,6 +48,11 @@ export type PortableBlock = {
 
 type Recipe = {
   title: LocalizedValue<string>;
+  sharedSlug?: string;
+  localizedSlug?: {
+    en?: {current?: string};
+    no?: {current?: string};
+  };
   cuisine?: {
     name?: LocalizedValue<string>;
     slug?: {current?: string};
@@ -79,11 +84,26 @@ type Recipe = {
     content?: LocalizedValue<PortableBlock[]>;
   }[];
   tipsAndNotes?: LocalizedValue<PortableBlock[]>;
+  guidanceCards?: {
+    _key: string;
+    image?: {
+      alt?: string;
+      asset?: unknown;
+    };
+    title?: LocalizedValue<string>;
+    body?: LocalizedValue<PortableBlock[]>;
+  }[];
   tiktokUrl?: string;
 };
 
-const recipeQuery = `*[_type == "recipe" && slug.current == $slug][0]{
+const recipeQuery = `*[_type == "recipe" && (
+  slug.current == $slug ||
+  localizedSlug.en.current == $slug ||
+  localizedSlug.no.current == $slug
+)][0]{
   title,
+  "sharedSlug": slug.current,
+  localizedSlug,
   cuisine->{name, slug},
   cuisineType,
   difficulty,
@@ -96,15 +116,17 @@ const recipeQuery = `*[_type == "recipe" && slug.current == $slug][0]{
   ingredients,
   methodSteps,
   tipsAndNotes,
+  guidanceCards,
   tiktokUrl
 }`;
 
 function normalizeRecipe(recipe: Recipe, locale: Locale) {
   const title = resolveLocalizedString(recipe.title, locale);
+  const legacyCuisineFallback = locale === "en" ? recipe.cuisineType : "";
   const cuisineName = resolveLocalizedString(
     recipe.cuisine?.name,
     locale,
-    recipe.cuisineType,
+    legacyCuisineFallback,
   );
   const intro = resolveLocalized<RichTextValue>(recipe.intro, locale);
   const tipsAndNotes = resolveLocalized<PortableBlock[]>(
@@ -128,6 +150,19 @@ function normalizeRecipe(recipe: Recipe, locale: Locale) {
       filterKey: ingredient.filterKey,
     }))
     .filter((ingredient) => ingredient.name);
+  const guidanceCards = recipe.guidanceCards
+    ?.map((card) => ({
+      _key: card._key,
+      title: resolveLocalizedString(card.title, locale),
+      body: resolveLocalized<PortableBlock[]>(card.body, locale, []),
+      image: card.image?.asset
+        ? {
+            src: urlFor(card.image).width(900).height(675).fit("crop").url(),
+            alt: card.image.alt || resolveLocalizedString(card.title, locale),
+          }
+        : null,
+    }))
+    .filter((card) => card.title && card.image);
 
   return {
     ...recipe,
@@ -137,7 +172,36 @@ function normalizeRecipe(recipe: Recipe, locale: Locale) {
     tipsAndNotes,
     methodSteps,
     ingredients,
+    guidanceCards,
   };
+}
+
+function recipeSlugForLocale(recipe: Recipe, locale: Locale, fallback: string) {
+  return recipe.localizedSlug?.[locale]?.current || recipe.sharedSlug || fallback;
+}
+
+function recipeLanguages(recipe: Recipe, fallbackSlug: string) {
+  return {
+    en: absoluteUrl(`/en/recipes/${recipeSlugForLocale(recipe, "en", fallbackSlug)}`),
+    no: absoluteUrl(`/no/recipes/${recipeSlugForLocale(recipe, "no", fallbackSlug)}`),
+  };
+}
+
+function isRecipeVisibleForLocale(
+  recipe: ReturnType<typeof normalizeRecipe>,
+  locale: Locale,
+) {
+  if (!recipe.title) {
+    return false;
+  }
+
+  if (locale === "no") {
+    return Boolean(
+      recipe.cuisineName && recipe.ingredients?.length && recipe.methodSteps?.length,
+    );
+  }
+
+  return true;
 }
 
 function plainTextFromBlocks(blocks?: PortableBlock[]) {
@@ -171,7 +235,7 @@ export async function generateMetadata({
 
   const normalized = normalizeRecipe(recipe, locale);
 
-  if (!normalized.title) {
+  if (!isRecipeVisibleForLocale(normalized, locale)) {
     notFound();
   }
 
@@ -182,8 +246,10 @@ export async function generateMetadata({
     title: normalized.title,
     description,
     alternates: {
-      canonical: absoluteUrl(`/${locale}/recipes/${slug}`),
-      languages: localeAlternates(`/recipes/${slug}`),
+      canonical: absoluteUrl(
+        `/${locale}/recipes/${recipeSlugForLocale(recipe, locale, slug)}`,
+      ),
+      languages: recipeLanguages(recipe, slug),
     },
   };
 }
@@ -207,7 +273,7 @@ export default async function RecipePage({params}: RecipePageProps) {
 
   const normalizedRecipe = normalizeRecipe(recipe, locale);
 
-  if (!normalizedRecipe.title) {
+  if (!isRecipeVisibleForLocale(normalizedRecipe, locale)) {
     notFound();
   }
 
@@ -320,6 +386,7 @@ export default async function RecipePage({params}: RecipePageProps) {
         ingredients={normalizedRecipe.ingredients}
         methodSteps={normalizedRecipe.methodSteps}
         tipsAndNotes={normalizedRecipe.tipsAndNotes}
+        guidanceCards={normalizedRecipe.guidanceCards}
         gallery={gallery}
         tiktokUrl={normalizedRecipe.tiktokUrl}
       />
