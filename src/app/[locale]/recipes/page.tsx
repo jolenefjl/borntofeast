@@ -2,11 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 import type {Metadata} from "next";
 
+import {richTextToPlainText, type RichTextValue} from "@/app/components/RichText";
 import {SiteHeader} from "@/app/components/SiteHeader";
 import {getSiteChrome} from "@/app/components/siteChrome";
 import {isLocale, localizedPath, type Locale} from "@/i18n/config";
 import {getDictionary} from "@/i18n/dictionaries";
-import {resolveLocalizedString, type LocalizedValue} from "@/i18n/localized";
+import {
+  resolveLocalized,
+  resolveLocalizedString,
+  type LocalizedValue,
+} from "@/i18n/localized";
 import {absoluteUrl, localeAlternates} from "@/i18n/urls";
 import {client} from "@/sanity/lib/client";
 import {urlFor} from "@/sanity/lib/image";
@@ -36,7 +41,7 @@ type RecipeListItem = {
   difficulty?: string;
   prepTime?: number;
   cookTime?: number;
-  intro?: LocalizedValue<string>;
+  intro?: LocalizedValue<RichTextValue>;
   heroImage?: {alt?: string; asset?: unknown};
   ingredients?: {
     name?: LocalizedValue<string>;
@@ -78,7 +83,7 @@ function normalizeRecipe(recipe: RecipeListItem, locale: Locale) {
     recipe.cuisineType || "",
   );
   const cuisineKey = recipe.cuisine?.slug?.current || slugify(cuisineName);
-  const intro = resolveLocalizedString(recipe.intro, locale);
+  const intro = richTextToPlainText(resolveLocalized(recipe.intro, locale));
   const ingredients =
     recipe.ingredients
       ?.map((ingredient) => ({

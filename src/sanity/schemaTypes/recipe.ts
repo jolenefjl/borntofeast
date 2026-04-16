@@ -1,9 +1,8 @@
 import {defineArrayMember, defineField, defineType} from "sanity";
 
 import {
-  localizedBlockField,
+  localizedRichTextField,
   localizedStringField,
-  localizedTextField,
 } from "@/sanity/schemaTypes/localized";
 
 const cuisineOptions = [
@@ -195,9 +194,8 @@ export const recipeType = defineType({
         }),
       ],
     }),
-    localizedTextField("intro", "Short description / intro", {
+    localizedRichTextField("intro", "Short description / intro", {
       description: "Personal, conversational, and why you love this dish.",
-      rows: 5,
     }),
     defineField({
       name: "ingredients",
@@ -233,7 +231,9 @@ export const recipeType = defineType({
           title: "Method step",
           type: "object",
           fields: [
-            localizedBlockField("content", "Step"),
+            localizedRichTextField("content", "Step", {
+              simple: true,
+            }),
           ],
           preview: {
             select: {
@@ -259,7 +259,10 @@ export const recipeType = defineType({
       ],
       validation: (rule) => rule.required().min(1),
     }),
-    localizedBlockField("tipsAndNotes", "Tips & notes"),
+    localizedRichTextField("tipsAndNotes", "Tips & notes", {
+      description:
+        "Use this for extra context, substitutions, storage notes, or serving ideas.",
+    }),
     defineField({
       name: "tiktokUrl",
       title: "TikTok video URL",

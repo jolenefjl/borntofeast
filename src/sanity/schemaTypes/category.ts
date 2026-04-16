@@ -1,8 +1,8 @@
 import {defineField, defineType} from "sanity";
 
 import {
+  localizedRichTextField,
   localizedStringField,
-  localizedTextField,
 } from "@/sanity/schemaTypes/localized";
 
 export const categoryType = defineType({
@@ -21,7 +21,9 @@ export const categoryType = defineType({
       },
       validation: (rule) => rule.required(),
     }),
-    localizedTextField("description", "Description", {rows: 4}),
+    localizedRichTextField("description", "Description", {
+      description: "Optional editorial copy for future category pages.",
+    }),
     defineField({
       name: "heroImage",
       title: "Hero image",

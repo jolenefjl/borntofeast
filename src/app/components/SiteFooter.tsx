@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import {RichText} from "@/app/components/RichText";
 import type {SiteChrome} from "@/app/components/siteChrome";
 
 type SiteFooterProps = {
@@ -19,9 +20,10 @@ export function SiteFooter({footer}: SiteFooterProps) {
             height={58}
             className="h-auto w-32 sm:w-36"
           />
-          <p className="mt-5 max-w-prose text-base leading-[1.55rem] sm:text-lg sm:leading-[1.65rem]">
-            {footer.intro}
-          </p>
+          <RichText
+            value={footer.intro}
+            className="mt-5 max-w-prose space-y-3 text-base leading-[1.55rem] sm:text-lg sm:leading-[1.65rem]"
+          />
         </div>
 
         <div className="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-end">

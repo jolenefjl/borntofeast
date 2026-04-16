@@ -1,8 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import type {Metadata} from "next";
-import {PortableText} from "next-sanity";
 
+import {
+  RichText,
+  paragraphsToRichText,
+  richTextToPlainText,
+  type RichTextValue,
+} from "@/app/components/RichText";
 import {SiteHeader} from "@/app/components/SiteHeader";
 import {getSiteChrome} from "@/app/components/siteChrome";
 import {isLocale, localizedPath, type Locale} from "@/i18n/config";
@@ -14,22 +19,16 @@ import {urlFor} from "@/sanity/lib/image";
 
 export const dynamic = "force-dynamic";
 
-type PortableBlock = {
-  _key: string;
-  _type: "block";
-  children?: {text?: string}[];
-};
-
 type AboutPageDocument = {
   heroEyebrow?: LocalizedValue<string>;
   heroTitle?: LocalizedValue<string>;
-  heroIntro?: LocalizedValue<string>;
+  heroIntro?: LocalizedValue<RichTextValue>;
   heroCtaLabel?: LocalizedValue<string>;
   heroCtaHref?: string;
   heroImage?: {alt?: string; asset?: unknown};
   storyEyebrow?: LocalizedValue<string>;
   storyTitle?: LocalizedValue<string>;
-  storyBody?: LocalizedValue<PortableBlock[]>;
+  storyBody?: LocalizedValue<RichTextValue>;
   valuesEyebrow?: LocalizedValue<string>;
   valuesTitle?: LocalizedValue<string>;
   values?: {
@@ -39,7 +38,7 @@ type AboutPageDocument = {
   }[];
   nextEyebrow?: LocalizedValue<string>;
   nextTitle?: LocalizedValue<string>;
-  nextText?: LocalizedValue<string>;
+  nextText?: LocalizedValue<RichTextValue>;
   nextCtaLabel?: LocalizedValue<string>;
   nextCtaHref?: string;
   nextImage?: {alt?: string; asset?: unknown};
@@ -73,11 +72,9 @@ export async function generateMetadata({
     locale,
     dictionary.about.metaTitle,
   );
-  const description = resolveLocalizedString(
-    aboutPage?.heroIntro,
-    locale,
-    dictionary.about.metaDescription,
-  );
+  const description =
+    richTextToPlainText(resolveLocalized(aboutPage?.heroIntro, locale)) ||
+    dictionary.about.metaDescription;
 
   return {
     title,
@@ -112,7 +109,7 @@ export default async function AboutPage({
     locale,
     about.heroTitle,
   );
-  const heroIntro = resolveLocalizedString(
+  const heroIntro = resolveLocalized<RichTextValue>(
     aboutPage?.heroIntro,
     locale,
     about.heroIntro,
@@ -129,9 +126,10 @@ export default async function AboutPage({
     locale,
     about.storyTitle,
   );
-  const storyBody = resolveLocalized<PortableBlock[]>(
+  const storyBody = resolveLocalized<RichTextValue>(
     aboutPage?.storyBody,
     locale,
+    paragraphsToRichText(about.storyBody),
   );
   const valuesEyebrow = resolveLocalizedString(
     aboutPage?.valuesEyebrow,
@@ -162,7 +160,7 @@ export default async function AboutPage({
     locale,
     about.nextTitle,
   );
-  const nextText = resolveLocalizedString(
+  const nextText = resolveLocalized<RichTextValue>(
     aboutPage?.nextText,
     locale,
     about.nextText,
@@ -205,9 +203,10 @@ export default async function AboutPage({
               <h1 className="mt-4 font-serif text-5xl font-bold lowercase leading-[0.95] sm:text-7xl sm:leading-[0.9] lg:text-8xl">
                 {heroTitle}
               </h1>
-              <p className="mt-5 max-w-prose text-lg font-normal leading-[1.65rem] sm:mt-6 sm:text-xl sm:leading-[1.8rem]">
-                {heroIntro}
-              </p>
+              <RichText
+                value={heroIntro}
+                className="mt-5 max-w-prose space-y-4 text-lg font-normal leading-[1.65rem] sm:mt-6 sm:text-xl sm:leading-[1.8rem]"
+              />
               {heroCtaLabel && heroCtaHref ? (
                 <Link
                   href={localizeHref(locale, heroCtaHref)}
@@ -231,15 +230,10 @@ export default async function AboutPage({
               {storyTitle}
             </h2>
           </div>
-          <div className="max-w-prose space-y-5 text-lg font-normal leading-[1.75rem] sm:space-y-6 sm:text-xl sm:leading-[2.025rem] lg:max-w-none">
-            {storyBody?.length ? (
-              <PortableText value={storyBody} />
-            ) : (
-              about.storyBody.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))
-            )}
-          </div>
+          <RichText
+            value={storyBody}
+            className="max-w-prose space-y-5 text-lg font-normal leading-[1.75rem] sm:space-y-6 sm:text-xl sm:leading-[2.025rem] lg:max-w-none"
+          />
         </div>
       </section>
 
@@ -282,9 +276,10 @@ export default async function AboutPage({
             <h2 className="font-serif text-4xl font-black lowercase leading-[0.95] sm:text-6xl sm:leading-[0.9]">
               {nextTitle}
             </h2>
-            <p className="mt-5 max-w-prose text-lg font-normal leading-[1.75rem] sm:mt-6 sm:text-xl sm:leading-[2.025rem]">
-              {nextText}
-            </p>
+            <RichText
+              value={nextText}
+              className="mt-5 max-w-prose space-y-5 text-lg font-normal leading-[1.75rem] sm:mt-6 sm:text-xl sm:leading-[2.025rem]"
+            />
             {nextCtaLabel && nextCtaHref ? (
               <Link
                 href={localizeHref(locale, nextCtaHref)}

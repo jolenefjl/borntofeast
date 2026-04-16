@@ -1,6 +1,11 @@
+import type {RichTextValue} from "@/app/components/RichText";
 import {localizedPath, type Locale} from "@/i18n/config";
 import type {Dictionary} from "@/i18n/dictionaries";
-import {resolveLocalizedString, type LocalizedValue} from "@/i18n/localized";
+import {
+  resolveLocalized,
+  resolveLocalizedString,
+  type LocalizedValue,
+} from "@/i18n/localized";
 import {client} from "@/sanity/lib/client";
 
 export type SiteLink = {
@@ -21,7 +26,7 @@ type CmsLink = {
 
 type SiteChromeDocument = {
   headerNavigationItems?: CmsLink[];
-  footerIntro?: LocalizedValue<string>;
+  footerIntro?: LocalizedValue<RichTextValue>;
   footerNewsletterHeading?: LocalizedValue<string>;
   footerNewsletterCtaLabel?: LocalizedValue<string>;
   footerNewsletterHref?: string;
@@ -31,7 +36,7 @@ type SiteChromeDocument = {
 export type SiteChrome = {
   navigationItems: SiteLink[];
   footer: {
-    intro: string;
+    intro: RichTextValue;
     newsletterHeading: string;
     newsletterCtaLabel: string;
     newsletterHref: string;
@@ -114,7 +119,7 @@ export async function getSiteChrome(
       fallbackNavigation,
     ),
     footer: {
-      intro: resolveLocalizedString(
+      intro: resolveLocalized(
         settings?.footerIntro,
         locale,
         dictionary.site.description,

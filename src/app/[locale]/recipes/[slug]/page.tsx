@@ -2,6 +2,7 @@ import Image from "next/image";
 import type {Metadata} from "next";
 import {notFound} from "next/navigation";
 
+import {RichText, richTextToPlainText, type RichTextValue} from "@/app/components/RichText";
 import {SiteHeader} from "@/app/components/SiteHeader";
 import {getSiteChrome} from "@/app/components/siteChrome";
 import {RecipeContent} from "./RecipeContent";
@@ -39,7 +40,7 @@ const fallbackGallery = [
   },
 ];
 
-type PortableBlock = {
+export type PortableBlock = {
   _key: string;
   _type: "block";
   children?: {text?: string}[];
@@ -64,7 +65,7 @@ type Recipe = {
     alt?: string;
     asset?: unknown;
   }[];
-  intro?: LocalizedValue<string>;
+  intro?: LocalizedValue<RichTextValue>;
   ingredients?: {
     _key: string;
     quantity?: number;
@@ -105,7 +106,7 @@ function normalizeRecipe(recipe: Recipe, locale: Locale) {
     locale,
     recipe.cuisineType,
   );
-  const intro = resolveLocalizedString(recipe.intro, locale);
+  const intro = resolveLocalized<RichTextValue>(recipe.intro, locale);
   const tipsAndNotes = resolveLocalized<PortableBlock[]>(
     recipe.tipsAndNotes,
     locale,
@@ -175,7 +176,7 @@ export async function generateMetadata({
   }
 
   const description =
-    normalized.intro || dictionary.site.description;
+    richTextToPlainText(normalized.intro) || dictionary.site.description;
 
   return {
     title: normalized.title,
@@ -229,7 +230,7 @@ export default async function RecipePage({params}: RecipePageProps) {
     "@context": "https://schema.org",
     "@type": "Recipe",
     name: normalizedRecipe.title,
-    description: normalizedRecipe.intro,
+    description: richTextToPlainText(normalizedRecipe.intro),
     image: [heroImage],
     recipeCuisine: normalizedRecipe.cuisineName,
     prepTime: minutesToDuration(normalizedRecipe.prepTime),
@@ -279,11 +280,10 @@ export default async function RecipePage({params}: RecipePageProps) {
               <h1 className="font-serif text-4xl font-black lowercase leading-[0.95] text-[#fff3c7] sm:text-7xl sm:leading-[0.9] lg:text-8xl">
                 {normalizedRecipe.title}
               </h1>
-              {normalizedRecipe.intro ? (
-                <p className="mt-5 max-w-prose text-lg font-normal leading-[1.65rem] text-[#fff3c7] sm:mt-6 sm:text-xl sm:leading-[1.8rem]">
-                  {normalizedRecipe.intro}
-                </p>
-              ) : null}
+              <RichText
+                value={normalizedRecipe.intro}
+                className="mt-5 max-w-prose space-y-4 text-lg font-normal leading-[1.65rem] text-[#fff3c7] sm:mt-6 sm:text-xl sm:leading-[1.8rem]"
+              />
             </div>
           </div>
         </div>

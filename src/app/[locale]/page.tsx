@@ -2,11 +2,20 @@ import Image from "next/image";
 import Link from "next/link";
 import type {Metadata} from "next";
 
+import {
+  RichText,
+  richTextToPlainText,
+  type RichTextValue,
+} from "@/app/components/RichText";
 import {SiteHeader} from "@/app/components/SiteHeader";
 import {getSiteChrome} from "@/app/components/siteChrome";
 import {isLocale, localizedPath, type Locale} from "@/i18n/config";
 import {getDictionary} from "@/i18n/dictionaries";
-import {resolveLocalizedString, type LocalizedValue} from "@/i18n/localized";
+import {
+  resolveLocalized,
+  resolveLocalizedString,
+  type LocalizedValue,
+} from "@/i18n/localized";
 import {absoluteUrl, localeAlternates} from "@/i18n/urls";
 import {client} from "@/sanity/lib/client";
 import {urlFor} from "@/sanity/lib/image";
@@ -91,7 +100,7 @@ type SiteSettings = {
   homepageHeroLine1?: LocalizedValue<string>;
   homepageHeroLine2?: LocalizedValue<string>;
   homepageHeroLine3?: LocalizedValue<string>;
-  homepageHeroIntro?: LocalizedValue<string>;
+  homepageHeroIntro?: LocalizedValue<RichTextValue>;
   homepageHeroCtaLabel?: LocalizedValue<string>;
   homepageHeroCtaHref?: string;
   homepageHeroPortrait?: {
@@ -109,10 +118,10 @@ type SiteSettings = {
   homepageCategoryCards?: CategoryCard[];
   homepageAboutEyebrow?: LocalizedValue<string>;
   homepageAboutHeading?: LocalizedValue<string>;
-  homepageAboutText?: LocalizedValue<string>;
+  homepageAboutText?: LocalizedValue<RichTextValue>;
   homepageNewsletterEyebrow?: LocalizedValue<string>;
   homepageNewsletterHeading?: LocalizedValue<string>;
-  homepageNewsletterText?: LocalizedValue<string>;
+  homepageNewsletterText?: LocalizedValue<RichTextValue>;
   homepageNewsletterButtonLabel?: LocalizedValue<string>;
 };
 
@@ -130,7 +139,7 @@ type RecipeCard = {
   time?: string;
   prepTime?: number;
   cookTime?: number;
-  description?: LocalizedValue<string>;
+  description?: LocalizedValue<RichTextValue>;
   image?:
     | string
     | {
@@ -285,7 +294,7 @@ export default async function Home({
         resolveLocalizedString(settings.homepageHeroLine3, locale),
       ].filter(hasText)
     : dictionary.homepage.hero.lines;
-  const heroIntro = resolveLocalizedString(
+  const heroIntro = resolveLocalized<RichTextValue>(
     settings?.homepageHeroIntro,
     locale,
     dictionary.homepage.hero.intro,
@@ -354,9 +363,9 @@ export default async function Home({
     settings?.homepageAboutHeading,
     dictionary.homepage.aboutHeading,
   );
-  const aboutText = getSetting(
-    locale,
+  const aboutText = resolveLocalized<RichTextValue>(
     settings?.homepageAboutText,
+    locale,
     dictionary.homepage.aboutText,
   );
   const newsletterEyebrow = getSetting(
@@ -369,9 +378,9 @@ export default async function Home({
     settings?.homepageNewsletterHeading,
     dictionary.homepage.newsletterHeading,
   );
-  const newsletterText = getSetting(
-    locale,
+  const newsletterText = resolveLocalized<RichTextValue>(
     settings?.homepageNewsletterText,
+    locale,
     dictionary.homepage.newsletterText,
   );
   const newsletterButtonLabel = getSetting(
@@ -421,11 +430,10 @@ export default async function Home({
                     ))}
                   </h1>
                 ) : null}
-                {hasText(heroIntro) ? (
-                  <p className="mt-5 max-w-prose text-lg font-normal leading-[1.65rem] sm:mt-6 sm:text-xl sm:leading-[1.8rem]">
-                    {heroIntro}
-                  </p>
-                ) : null}
+                <RichText
+                  value={heroIntro}
+                  className="mt-5 max-w-prose space-y-4 text-lg font-normal leading-[1.65rem] sm:mt-6 sm:text-xl sm:leading-[1.8rem]"
+                />
                 {hasText(heroCtaLabel) && hasText(heroCtaHref) ? (
                   <a
                     href={localizeHref(locale, heroCtaHref)}
@@ -471,9 +479,8 @@ export default async function Home({
           <div className="grid gap-6 lg:grid-cols-3">
             {displayedRecipes.map((recipe) => {
               const title = resolveLocalizedString(recipe.title, locale);
-              const description = resolveLocalizedString(
-                recipe.description,
-                locale,
+              const description = richTextToPlainText(
+                resolveLocalized(recipe.description, locale),
               );
               const href =
                 "slug" in recipe && recipe.slug
@@ -633,11 +640,10 @@ export default async function Home({
               </h2>
             ) : null}
           </div>
-          {hasText(aboutText) ? (
-            <p className="max-w-prose text-lg font-normal leading-[1.75rem] sm:text-xl sm:leading-[2.025rem]">
-              {aboutText}
-            </p>
-          ) : null}
+          <RichText
+            value={aboutText}
+            className="max-w-prose space-y-5 text-lg font-normal leading-[1.75rem] sm:text-xl sm:leading-[2.025rem]"
+          />
         </div>
       </section>
 
@@ -657,11 +663,10 @@ export default async function Home({
                 {newsletterHeading}
               </h2>
             ) : null}
-            {hasText(newsletterText) ? (
-              <p className="mt-4 max-w-2xl text-lg font-normal leading-[1.8rem]">
-                {newsletterText}
-              </p>
-            ) : null}
+            <RichText
+              value={newsletterText}
+              className="mt-4 max-w-2xl space-y-4 text-lg font-normal leading-[1.8rem]"
+            />
           </div>
           <form className="grid gap-3 sm:grid-cols-[1fr_auto]">
             <label className="sr-only" htmlFor="email">

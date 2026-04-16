@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import {PortableText} from "next-sanity";
 import {useEffect, useMemo, useState} from "react";
 
+import {RichText} from "@/app/components/RichText";
 import type {Dictionary} from "@/i18n/dictionaries";
 
 type PortableBlock = {
@@ -261,9 +261,10 @@ export function RecipeContent({
                   <span className="flex h-7 w-7 items-center justify-center border-2 border-[#240B36] bg-[#c7391f] text-sm font-black text-[#fff3c7]">
                     {index + 1}
                   </span>
-                  <div className="min-w-0 max-w-prose text-base font-normal leading-[1.65rem] sm:text-lg sm:leading-[1.8rem]">
-                    {step.content ? <PortableText value={step.content} /> : null}
-                  </div>
+                  <RichText
+                    value={step.content}
+                    className="min-w-0 max-w-prose space-y-3 text-base font-normal leading-[1.65rem] sm:text-lg sm:leading-[1.8rem]"
+                  />
                 </li>
               ))}
             </ol>
@@ -274,9 +275,10 @@ export function RecipeContent({
               <h2 className="font-serif text-3xl font-black lowercase leading-[0.95] sm:text-4xl sm:leading-[0.9]">
                 {dictionary.tipsNotes}
               </h2>
-              <div className="mt-4 max-w-prose space-y-3 text-base font-normal leading-[1.65rem] sm:text-lg sm:leading-[1.8rem]">
-                <PortableText value={tipsAndNotes} />
-              </div>
+              <RichText
+                value={tipsAndNotes}
+                className="mt-4 max-w-prose space-y-3 text-base font-normal leading-[1.65rem] sm:text-lg sm:leading-[1.8rem]"
+              />
             </section>
           ) : null}
 

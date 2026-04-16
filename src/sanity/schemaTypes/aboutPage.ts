@@ -1,6 +1,7 @@
 import {defineArrayMember, defineField, defineType} from "sanity";
 
 import {
+  localizedRichTextField,
   localizedStringField,
   localizedTextField,
 } from "@/sanity/schemaTypes/localized";
@@ -12,7 +13,9 @@ export const aboutPageType = defineType({
   fields: [
     localizedStringField("heroEyebrow", "Hero eyebrow"),
     localizedStringField("heroTitle", "Hero title"),
-    localizedTextField("heroIntro", "Hero intro", {rows: 4}),
+    localizedRichTextField("heroIntro", "Hero intro", {
+      description: "Introductory body copy below the main title.",
+    }),
     localizedStringField("heroCtaLabel", "Hero CTA label"),
     defineField({
       name: "heroCtaHref",
@@ -29,25 +32,7 @@ export const aboutPageType = defineType({
     }),
     localizedStringField("storyEyebrow", "Story eyebrow"),
     localizedStringField("storyTitle", "Story title"),
-    defineField({
-      name: "storyBody",
-      title: "Story body",
-      type: "object",
-      fields: [
-        defineField({
-          name: "en",
-          title: "English",
-          type: "array",
-          of: [defineArrayMember({type: "block"})],
-        }),
-        defineField({
-          name: "no",
-          title: "Norwegian",
-          type: "array",
-          of: [defineArrayMember({type: "block"})],
-        }),
-      ],
-    }),
+    localizedRichTextField("storyBody", "Story body"),
     localizedStringField("valuesEyebrow", "Values eyebrow"),
     localizedStringField("valuesTitle", "Values title"),
     defineField({
@@ -76,7 +61,9 @@ export const aboutPageType = defineType({
     }),
     localizedStringField("nextEyebrow", "Next section eyebrow"),
     localizedStringField("nextTitle", "Next section title"),
-    localizedTextField("nextText", "Next section text", {rows: 4}),
+    localizedRichTextField("nextText", "Next section text", {
+      description: "Longer supporting body copy for the closing section.",
+    }),
     localizedStringField("nextCtaLabel", "Next section CTA label"),
     defineField({
       name: "nextCtaHref",

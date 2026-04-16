@@ -1,6 +1,7 @@
 import {defineArrayMember, defineField, defineType} from "sanity";
 
 import {
+  localizedRichTextField,
   localizedStringField,
   localizedTextField,
 } from "@/sanity/schemaTypes/localized";
@@ -56,8 +57,8 @@ export const siteSettingsType = defineType({
     localizedStringField("homepageHeroLine3", "Hero headline line 3", {
       fieldset: "homepageHero",
     }),
-    localizedTextField("homepageHeroIntro", "Hero intro text", {
-      rows: 3,
+    localizedRichTextField("homepageHeroIntro", "Hero intro text", {
+      description: "Short supporting body copy below the homepage headline.",
       fieldset: "homepageHero",
     }),
     localizedStringField("homepageHeroCtaLabel", "Hero CTA label", {
@@ -144,8 +145,8 @@ export const siteSettingsType = defineType({
         }),
       ],
     }),
-    localizedTextField("footerIntro", "Footer intro", {
-      rows: 3,
+    localizedRichTextField("footerIntro", "Footer intro", {
+      description: "Short descriptive copy for the footer.",
       fieldset: "footer",
     }),
     localizedStringField("footerNewsletterHeading", "Footer newsletter heading", {
@@ -304,8 +305,8 @@ export const siteSettingsType = defineType({
     localizedStringField("homepageAboutHeading", "About heading", {
       fieldset: "homepageAbout",
     }),
-    localizedTextField("homepageAboutText", "About text", {
-      rows: 4,
+    localizedRichTextField("homepageAboutText", "About text", {
+      description: "Editorial body copy for the homepage about section.",
       fieldset: "homepageAbout",
     }),
     localizedStringField("homepageNewsletterEyebrow", "Newsletter eyebrow", {
@@ -314,8 +315,8 @@ export const siteSettingsType = defineType({
     localizedStringField("homepageNewsletterHeading", "Newsletter heading", {
       fieldset: "homepageNewsletter",
     }),
-    localizedTextField("homepageNewsletterText", "Newsletter text", {
-      rows: 3,
+    localizedRichTextField("homepageNewsletterText", "Newsletter text", {
+      description: "Supporting body copy for the newsletter section.",
       fieldset: "homepageNewsletter",
     }),
     localizedStringField("homepageNewsletterButtonLabel", "Newsletter button label", {

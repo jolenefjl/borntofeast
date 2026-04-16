@@ -9,6 +9,7 @@
     "lint": "eslint",
     "sanity": "sanity",
     "sanity:migrate:localized-en": "sanity exec scripts/migrate-localized-en.ts --with-user-token --",
+    "sanity:migrate:rich-text": "sanity exec scripts/migrate-rich-text-fields.ts --with-user-token --",
     "sanity:seed:about": "sanity exec scripts/seed-about-page.ts --with-user-token --",
     "sanity:schema:validate": "sanity schemas validate",
     "sanity:schema:deploy": "sanity schemas deploy"

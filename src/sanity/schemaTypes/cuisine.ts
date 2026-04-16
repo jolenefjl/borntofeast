@@ -1,8 +1,8 @@
 import {defineField, defineType} from "sanity";
 
 import {
+  localizedRichTextField,
   localizedStringField,
-  localizedTextField,
 } from "@/sanity/schemaTypes/localized";
 
 export const cuisineType = defineType({
@@ -21,9 +21,8 @@ export const cuisineType = defineType({
       },
       validation: (rule) => rule.required(),
     }),
-    localizedTextField("description", "Description", {
+    localizedRichTextField("description", "Description", {
       description: "Optional short context for browsing/filter pages later.",
-      rows: 3,
     }),
   ],
   preview: {
