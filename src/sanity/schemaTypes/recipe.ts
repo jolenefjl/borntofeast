@@ -337,6 +337,11 @@ export const recipeType = defineType({
       description:
         "Use this for extra context, substitutions, storage notes, or serving ideas.",
     }),
+    localizedRichTextField("lifeStory", "The life story you didn't ask for", {
+      description:
+        "Optional narrative section shown below the photo gallery. Supports headings, lists, links, emphasis, and inline images.",
+      images: true,
+    }),
     defineField({
       name: "guidanceCards",
       title: "Recipe guidance photo cards",

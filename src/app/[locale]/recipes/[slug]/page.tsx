@@ -10,6 +10,7 @@ import {isLocale, type Locale} from "@/i18n/config";
 import {getDictionary} from "@/i18n/dictionaries";
 import {resolveLocalized, resolveLocalizedString, type LocalizedValue} from "@/i18n/localized";
 import {absoluteUrl} from "@/i18n/urls";
+import {calculateRecipeNutrition} from "@/lib/nutrition";
 import {client} from "@/sanity/lib/client";
 import {urlFor} from "@/sanity/lib/image";
 
@@ -42,7 +43,9 @@ const fallbackGallery = [
 
 export type PortableBlock = {
   _key: string;
-  _type: "block";
+  _type: string;
+  alt?: string;
+  asset?: unknown;
   children?: {text?: string}[];
 };
 
@@ -85,6 +88,7 @@ type Recipe = {
     content?: LocalizedValue<PortableBlock[]>;
   }[];
   tipsAndNotes?: LocalizedValue<PortableBlock[]>;
+  lifeStory?: LocalizedValue<PortableBlock[]>;
   guidanceCards?: {
     _key: string;
     image?: {
@@ -117,6 +121,7 @@ const recipeQuery = `*[_type == "recipe" && (
   ingredients,
   methodSteps,
   tipsAndNotes,
+  lifeStory,
   guidanceCards,
   tiktokUrl
 }`;
@@ -132,6 +137,11 @@ function normalizeRecipe(recipe: Recipe, locale: Locale) {
   const intro = resolveLocalized<RichTextValue>(recipe.intro, locale);
   const tipsAndNotes = resolveLocalized<PortableBlock[]>(
     recipe.tipsAndNotes,
+    locale,
+    [],
+  );
+  const lifeStory = resolveLocalized<PortableBlock[]>(
+    recipe.lifeStory,
     locale,
     [],
   );
@@ -171,6 +181,7 @@ function normalizeRecipe(recipe: Recipe, locale: Locale) {
     cuisineName,
     intro,
     tipsAndNotes,
+    lifeStory,
     methodSteps,
     ingredients,
     guidanceCards,
@@ -279,6 +290,7 @@ export default async function RecipePage({params}: RecipePageProps) {
   }
 
   const totalTime = normalizedRecipe.prepTime + normalizedRecipe.cookTime;
+  const nutrition = calculateRecipeNutrition(recipe);
   const heroImage = recipe.heroImage?.asset
     ? urlFor(recipe.heroImage).width(1000).height(1300).fit("crop").url()
     : fallbackHeroImage;
@@ -385,8 +397,10 @@ export default async function RecipePage({params}: RecipePageProps) {
         dictionary={dictionary.recipe}
         baseServings={normalizedRecipe.servings}
         ingredients={normalizedRecipe.ingredients}
+        nutrition={nutrition}
         methodSteps={normalizedRecipe.methodSteps}
         tipsAndNotes={normalizedRecipe.tipsAndNotes}
+        lifeStory={normalizedRecipe.lifeStory}
         guidanceCards={normalizedRecipe.guidanceCards}
         gallery={gallery}
         tiktokUrl={normalizedRecipe.tiktokUrl}

@@ -1,14 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import {useEffect, useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 
 import {RichText} from "@/app/components/RichText";
 import type {Dictionary} from "@/i18n/dictionaries";
 
 type PortableBlock = {
   _key: string;
-  _type: "block";
+  _type: string;
+  alt?: string;
+  asset?: unknown;
   children?: {text?: string}[];
 };
 
@@ -30,6 +32,13 @@ type GalleryImage = {
   alt: string;
 };
 
+type Nutrition = {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+};
+
 type GuidanceCard = {
   _key: string;
   title: string;
@@ -41,8 +50,10 @@ type RecipeContentProps = {
   dictionary: Dictionary["recipe"];
   baseServings: number;
   ingredients?: Ingredient[];
+  nutrition?: Nutrition | null;
   methodSteps?: MethodStep[];
   tipsAndNotes?: PortableBlock[];
+  lifeStory?: PortableBlock[];
   guidanceCards?: GuidanceCard[];
   gallery: GalleryImage[];
   tiktokUrl?: string;
@@ -85,6 +96,39 @@ function formatIngredientAmount(
     typeof quantity === "number" ? formatScaledQuantity(quantity, scale) : "";
 
   return [amount, unit].filter(Boolean).join(" ");
+}
+
+function NutritionCard({
+  dictionary,
+  nutrition,
+}: {
+  dictionary: Dictionary["recipe"];
+  nutrition?: Nutrition | null;
+}) {
+  if (!nutrition) {
+    return null;
+  }
+
+  return (
+    <section className="mt-5 border-2 border-[#240B36] bg-[#ffd447] p-4">
+      <h3 className="font-serif text-2xl font-black lowercase leading-[0.95]">
+        {dictionary.nutritionPerServing}
+      </h3>
+      <dl className="mt-4 grid gap-2 text-sm font-medium uppercase leading-[0.95]">
+        {[
+          [dictionary.calories, `${nutrition.calories} kcal`],
+          [dictionary.protein, `${nutrition.protein} g`],
+          [dictionary.carbohydrates, `${nutrition.carbs} g`],
+          [dictionary.fat, `${nutrition.fat} g`],
+        ].map(([label, value]) => (
+          <div key={label} className="flex items-baseline justify-between gap-4">
+            <dt className="text-[#7b2418]">{label}</dt>
+            <dd className="text-base font-black text-[#240B36]">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
 }
 
 function IngredientRows({
@@ -131,6 +175,165 @@ function IngredientRows({
         </li>
       ))}
     </ul>
+  );
+}
+
+function GalleryLightbox({
+  images,
+  dictionary,
+}: {
+  images: GalleryImage[];
+  dictionary: Dictionary["recipe"];
+}) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const activeImage = activeIndex === null ? null : images[activeIndex];
+
+  const close = useCallback(() => setActiveIndex(null), []);
+  const previous = useCallback(() => {
+    setActiveIndex((current) =>
+      current === null ? current : (current - 1 + images.length) % images.length,
+    );
+  }, [images.length]);
+  const next = useCallback(() => {
+    setActiveIndex((current) =>
+      current === null ? current : (current + 1) % images.length,
+    );
+  }, [images.length]);
+
+  useEffect(() => {
+    if (activeIndex === null) {
+      return;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        close();
+      }
+
+      if (event.key === "ArrowLeft") {
+        previous();
+      }
+
+      if (event.key === "ArrowRight") {
+        next();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [activeIndex, close, next, previous]);
+
+  return (
+    <>
+      <section className="grid gap-4 sm:grid-cols-2">
+        {images.map((image, index) => (
+          <button
+            key={image.src}
+            type="button"
+            className="relative aspect-[4/3] min-h-0 border-4 border-[#240B36] bg-[#ffd447] text-left shadow-[5px_5px_0_#240B36] sm:shadow-[8px_8px_0_#240B36] lg:first:col-span-2 lg:first:aspect-[16/9]"
+            onClick={() => setActiveIndex(index)}
+            aria-label={`${dictionary.openImage}: ${image.alt}`}
+          >
+            <Image
+              src={image.src}
+              alt={image.alt}
+              fill
+              sizes={
+                index === 0
+                  ? "(min-width: 1024px) 54vw, 90vw"
+                  : "(min-width: 640px) 26vw, 90vw"
+              }
+              className="object-cover"
+            />
+          </button>
+        ))}
+      </section>
+
+      {activeImage ? (
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-[#240B36]/90 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={activeImage.alt}
+          onClick={close}
+          onTouchStart={(event) => {
+            touchStartX.current = event.touches[0]?.clientX ?? null;
+          }}
+          onTouchEnd={(event) => {
+            if (touchStartX.current === null) {
+              return;
+            }
+
+            const delta = event.changedTouches[0]?.clientX - touchStartX.current;
+            touchStartX.current = null;
+
+            if (Math.abs(delta) < 40) {
+              return;
+            }
+
+            if (delta > 0) {
+              previous();
+            } else {
+              next();
+            }
+          }}
+        >
+          <button
+            type="button"
+            className="absolute right-4 top-4 z-[82] h-11 w-11 border-2 border-[#fff3c7] bg-[#ffd447] text-2xl font-black text-[#240B36]"
+            onClick={close}
+            aria-label={dictionary.closeGallery}
+          >
+            ×
+          </button>
+          {images.length > 1 ? (
+            <>
+              <button
+                type="button"
+                className="absolute left-3 top-1/2 z-[82] h-12 w-12 -translate-y-1/2 border-2 border-[#fff3c7] bg-[#ffd447] text-3xl font-black text-[#240B36]"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  previous();
+                }}
+                aria-label={dictionary.previousImage}
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 z-[82] h-12 w-12 -translate-y-1/2 border-2 border-[#fff3c7] bg-[#ffd447] text-3xl font-black text-[#240B36]"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  next();
+                }}
+                aria-label={dictionary.nextImage}
+              >
+                ›
+              </button>
+            </>
+          ) : null}
+          <div
+            className="relative h-[82vh] w-full max-w-5xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <Image
+              src={activeImage.src}
+              alt={activeImage.alt}
+              fill
+              sizes="96vw"
+              className="object-contain"
+              priority
+            />
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -196,8 +399,10 @@ export function RecipeContent({
   dictionary,
   baseServings,
   ingredients,
+  nutrition,
   methodSteps,
   tipsAndNotes,
+  lifeStory,
   guidanceCards,
   gallery,
   tiktokUrl,
@@ -249,6 +454,7 @@ export function RecipeContent({
             {dictionary.ingredients}
           </h2>
           <IngredientRows ingredients={ingredients} scale={scale} />
+          <NutritionCard dictionary={dictionary} nutrition={nutrition} />
         </aside>
 
         <div className="min-w-0 space-y-7 sm:space-y-8">
@@ -333,22 +539,19 @@ export function RecipeContent({
             </section>
           ) : null}
 
-          <section className="grid gap-4 md:grid-cols-3">
-            {gallery.map((image) => (
-              <div
-                key={image.src}
-                className="relative aspect-[4/3] min-h-0 border-4 border-[#240B36] bg-[#ffd447]"
-              >
-                <Image
-                  src={image.src}
-                  alt={image.alt}
-                  fill
-                  sizes="(min-width: 768px) 30vw, 90vw"
-                  className="object-cover"
-                />
-              </div>
-            ))}
-          </section>
+          <GalleryLightbox images={gallery} dictionary={dictionary} />
+
+          {lifeStory?.length ? (
+            <section className="border-y-4 border-[#240B36] py-6 sm:py-8">
+              <h2 className="font-serif text-3xl font-black lowercase leading-[0.95] sm:text-4xl sm:leading-[0.9]">
+                {dictionary.lifeStory}
+              </h2>
+              <RichText
+                value={lifeStory}
+                className="mt-5 max-w-2xl space-y-5 text-lg font-normal leading-[1.75rem]"
+              />
+            </section>
+          ) : null}
 
           <section className="border-4 border-[#240B36] bg-[#240B36] p-4 text-[#fff3c7] sm:p-5">
             <p className="text-sm font-medium uppercase leading-[0.9] text-[#ffd447]">

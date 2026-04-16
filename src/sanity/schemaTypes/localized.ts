@@ -16,8 +16,29 @@ const richTextBlock = defineArrayMember({
       {title: "Bold", value: "strong"},
       {title: "Italic", value: "em"},
     ],
-    annotations: [],
+    annotations: [
+      defineArrayMember({
+        name: "link",
+        title: "Link",
+        type: "object",
+        fields: [
+          defineField({
+            name: "href",
+            title: "URL",
+            type: "url",
+          }),
+        ],
+      }),
+    ],
   },
+});
+
+const richTextImage = defineArrayMember({
+  name: "inlineImage",
+  title: "Inline image",
+  type: "image",
+  options: {hotspot: true},
+  fields: [defineField({name: "alt", title: "Alt text", type: "string"})],
 });
 
 const simpleRichTextBlock = defineArrayMember({
@@ -86,9 +107,11 @@ export function localizedRichTextField(
     description?: string;
     fieldset?: string;
     simple?: boolean;
+    images?: boolean;
   } = {},
 ) {
   const block = options.simple ? simpleRichTextBlock : richTextBlock;
+  const members = options.images ? [block, richTextImage] : [block];
 
   return defineField({
     name,
@@ -101,13 +124,13 @@ export function localizedRichTextField(
         name: "en",
         title: "English",
         type: "array",
-        of: [block],
+        of: members,
       }),
       defineField({
         name: "no",
         title: "Norwegian",
         type: "array",
-        of: [block],
+        of: members,
       }),
     ],
   });
