@@ -1,6 +1,7 @@
 import type {Metadata} from "next";
 import {Afacad, Fraunces} from "next/font/google";
 import {notFound} from "next/navigation";
+import {Analytics} from "@vercel/analytics/next";
 
 import "../globals.css";
 import {SiteFooter} from "@/app/components/SiteFooter";
@@ -78,6 +79,7 @@ export default async function LocaleLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <SiteFooter footer={chrome.footer} />
+        <Analytics />
       </body>
     </html>
   );
