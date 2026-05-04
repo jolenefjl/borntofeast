@@ -289,7 +289,7 @@ export const recipeType = defineType({
       name: "recipeStructureImportText",
       title: "Paste ingredient + method draft",
       description:
-        "Optional helper for recipe entry. Paste rough ingredients and method text, preview the parsed structure, then import only ingredients/groups and method steps. This does not publish and does not fill Norwegian fields.",
+        "Optional helper for recipe entry. Paste rough ingredients and method text, preview the parsed structure, then import only ingredients/groups and method steps into either English or Norwegian fields. This does not publish.",
       type: "text",
       rows: 14,
       components: {

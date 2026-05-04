@@ -3,6 +3,8 @@ type LocalizedString = {
   no?: string;
 };
 
+export type RecipeImportLocale = "en" | "no";
+
 type PortableTextBlock = {
   _key: string;
   _type: "block";
@@ -21,6 +23,7 @@ export type ParsedIngredient = {
   _type: "ingredient";
   quantity?: number;
   unit?: string;
+  unitLabel?: LocalizedString;
   name: LocalizedString;
   note?: LocalizedString;
   filterKey: string;
@@ -37,7 +40,8 @@ export type ParsedMethodStep = {
   _key: string;
   _type: "methodStep";
   content: {
-    en: PortableTextBlock[];
+    en?: PortableTextBlock[];
+    no?: PortableTextBlock[];
   };
 };
 
@@ -121,7 +125,7 @@ function normalizeIngredientText(line: string) {
       /^(\d+(?:\.\d+)?|\d+\/\d+|\u00bc|\u00bd|\u00be|\u2153|\u2154)([a-zA-Z]+)/,
       "$1 $2",
     )
-    .replace(/^(\d+(?:\.\d+)?)\s*[–-]\s*(\d+(?:\.\d+)?)/, "$1-$2")
+    .replace(/^(\d+(?:\.\d+)?)\s*[\u2013-]\s*(\d+(?:\.\d+)?)/, "$1-$2")
     .trim();
 }
 
@@ -211,11 +215,11 @@ function isLikelyIngredientLine(line: string) {
     return true;
   }
 
-  if (/\b(to taste|for frying|as needed)\b/i.test(cleaned)) {
+  if (/\b(to taste|for frying|as needed|etter smak)\b/i.test(cleaned)) {
     return true;
   }
 
-  return /^(salt|pepper|msg|water|oil|neutral oil|cooking oil)\b/i.test(
+  return /^(salt|pepper|msg|water|oil|neutral oil|cooking oil|pepper|vann)\b/i.test(
     cleaned,
   );
 }
@@ -240,7 +244,11 @@ function splitNote(name: string) {
   return {name: name.trim(), note: ""};
 }
 
-function parseIngredient(line: string, index: number): ParsedIngredient | null {
+function parseIngredient(
+  line: string,
+  index: number,
+  locale: RecipeImportLocale,
+): ParsedIngredient | null {
   const cleaned = normalizeIngredientText(line);
 
   if (!cleaned) {
@@ -269,8 +277,9 @@ function parseIngredient(line: string, index: number): ParsedIngredient | null {
     _type: "ingredient",
     quantity,
     unit,
-    name: {en: name},
-    ...(note ? {note: {en: note}} : {}),
+    ...(unit ? {unitLabel: {[locale]: unit}} : {}),
+    name: {[locale]: name},
+    ...(note ? {note: {[locale]: note}} : {}),
     filterKey,
   };
 }
@@ -334,7 +343,7 @@ function isGroupHeading(line: string, nextLine: string) {
   }
 
   if (
-    /^(for\s+(the\s+)?)?(burger patties|patties|garnish|toppings?|sauce|dressing|marinade|filling|noodles?|rice|assembly|other essentials)$/i.test(
+    /^(for\s+(the\s+)?)?(burger patties|patties|garnish|toppings?|sauce|dressing|marinade|filling|noodles?|rice|assembly|other essentials|pynt|saus|marinade|fyll|annet)$/i.test(
       heading,
     )
   ) {
@@ -344,7 +353,7 @@ function isGroupHeading(line: string, nextLine: string) {
   return /^for\s+(the\s+)?[a-z][a-z\s-]{2,40}$/i.test(heading);
 }
 
-function parseIngredients(lines: string[]) {
+function parseIngredients(lines: string[], locale: RecipeImportLocale) {
   const cleanedLines = lines.map((line) => line.trim()).filter(Boolean);
   const groups: ParsedIngredientGroup[] = [];
   const flatIngredients: ParsedIngredient[] = [];
@@ -353,21 +362,20 @@ function parseIngredients(lines: string[]) {
   cleanedLines.forEach((line, index) => {
     const normalized = normalizeLine(line);
     const nextLine = cleanedLines[index + 1] || "";
-    const looksLikeHeading =
-      isGroupHeading(line, nextLine);
+    const looksLikeHeading = isGroupHeading(line, nextLine);
 
     if (looksLikeHeading) {
       currentGroup = {
         _key: key("ingredient-group", groups.length),
         _type: "ingredientGroup",
-        groupTitle: {en: normalized.replace(/:$/, "")},
+        groupTitle: {[locale]: normalized.replace(/:$/, "")},
         ingredients: [],
       };
       groups.push(currentGroup);
       return;
     }
 
-    const ingredient = parseIngredient(normalized, index);
+    const ingredient = parseIngredient(normalized, index, locale);
 
     if (!ingredient) {
       return;
@@ -389,7 +397,7 @@ function parseIngredients(lines: string[]) {
   const fallbackIngredients =
     flatIngredients.length || !populatedGroups.length
       ? cleanedLines
-          .map((line, index) => parseIngredient(line, index))
+          .map((line, index) => parseIngredient(line, index, locale))
           .filter((ingredient): ingredient is ParsedIngredient => Boolean(ingredient))
       : [];
 
@@ -413,7 +421,7 @@ function blockFromText(text: string, index: number): PortableTextBlock {
   };
 }
 
-function parseMethodSteps(methodText: string) {
+function parseMethodSteps(methodText: string, locale: RecipeImportLocale) {
   const lines = methodText.replace(/\r\n/g, "\n").split("\n");
   const steps: string[] = [];
   let current = "";
@@ -454,15 +462,18 @@ function parseMethodSteps(methodText: string) {
       _key: key("method-step", index),
       _type: "methodStep" as const,
       content: {
-        en: [blockFromText(step, index)],
+        [locale]: [blockFromText(step, index)],
       },
     }));
 }
 
-export function parseRecipeStructure(raw: string): ParsedRecipeStructure {
+export function parseRecipeStructure(
+  raw: string,
+  locale: RecipeImportLocale = "en",
+): ParsedRecipeStructure {
   const {ingredientLines, methodText} = splitSections(raw);
-  const parsedIngredients = parseIngredients(ingredientLines);
-  const methodSteps = parseMethodSteps(methodText);
+  const parsedIngredients = parseIngredients(ingredientLines, locale);
+  const methodSteps = parseMethodSteps(methodText, locale);
 
   return {
     ...parsedIngredients,
