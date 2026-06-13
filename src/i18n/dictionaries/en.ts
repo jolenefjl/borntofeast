@@ -32,6 +32,14 @@ export const en = {
     newsletterHeading: "get hungry before friday.",
     newsletterText: "One recipe, one pantry note, and one thing worth eating this week.",
     newsletterButtonLabel: "sign up",
+    newsletterFirstNameLabel: "First name",
+    newsletterFirstNamePlaceholder: "First name",
+    newsletterEmailLabel: "Email address",
+    newsletterEmailPlaceholder: "you@example.com",
+    newsletterConsent:
+      "Yes, I'd like to receive recipes and updates from Born to Feast. I can unsubscribe at any time.",
+    newsletterSuccess: "You're on the list. Thank you!",
+    newsletterError: "Something went wrong. Please try again.",
   },
   recipe: {
     prep: "Prep",

@@ -32,6 +32,14 @@ export const no = {
     newsletterHeading: "bli sulten før fredag.",
     newsletterText: "En oppskrift, et pantry-tips og en ting som er verdt å spise denne uka.",
     newsletterButtonLabel: "meld deg på",
+    newsletterFirstNameLabel: "Fornavn",
+    newsletterFirstNamePlaceholder: "Fornavn",
+    newsletterEmailLabel: "E-postadresse",
+    newsletterEmailPlaceholder: "du@eksempel.no",
+    newsletterConsent:
+      "Ja, jeg vil gjerne motta oppskrifter og oppdateringer fra Born to Feast. Jeg kan melde meg av når som helst.",
+    newsletterSuccess: "Du er på listen. Takk!",
+    newsletterError: "Noe gikk galt. Prøv igjen.",
   },
   recipe: {
     prep: "Forberedelse",

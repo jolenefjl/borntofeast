@@ -36,6 +36,8 @@ type MethodStep = {
 type GalleryImage = {
   src: string;
   alt: string;
+  width?: number;
+  height?: number;
 };
 
 type Nutrition = {
@@ -525,17 +527,18 @@ export function RecipeContent({
                       key={card._key}
                       className="border-2 border-[#240B36] bg-[#fff3c7]"
                     >
-                      <div className="relative aspect-[4/3] border-b-2 border-[#240B36]">
+                      <div className="border-b-2 border-[#240B36] bg-[#fff3c7]">
                         <Image
                           src={card.image.src}
                           alt={card.image.alt || card.title}
-                          fill
+                          width={card.image.width || 900}
+                          height={card.image.height || 1200}
                           sizes="(min-width: 768px) 32vw, 90vw"
-                          className="object-cover"
+                          className="h-auto w-full object-contain"
                         />
                       </div>
                       <div className="p-4">
-                        <h3 className="font-serif text-2xl font-black lowercase leading-[0.95] sm:text-3xl sm:leading-[0.9]">
+                        <h3 className="text-base font-bold leading-[1.4]">
                           {card.title}
                         </h3>
                         {card.body?.length ? (

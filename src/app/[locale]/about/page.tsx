@@ -172,7 +172,7 @@ export default async function AboutPage({
     ? urlFor(aboutPage.heroImage).width(900).height(1200).fit("crop").url()
     : "https://images.unsplash.com/photo-1606787366850-de6330128bfc?auto=format&fit=crop&w=900&q=85";
   const nextImage = aboutPage?.nextImage?.asset
-    ? urlFor(aboutPage.nextImage).width(1000).height(800).fit("crop").url()
+    ? urlFor(aboutPage.nextImage).width(900).fit("max").url()
     : "https://images.unsplash.com/photo-1525755662778-989d0524087e?auto=format&fit=crop&w=1000&q=85";
 
   return (
@@ -269,7 +269,18 @@ export default async function AboutPage({
       </section>
 
       <section className="bg-[#240B36] px-4 py-14 text-[#fff3c7] sm:px-8 sm:py-28 lg:py-32">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.42fr_1fr] lg:items-stretch lg:gap-20">
+          <div
+            className="relative min-h-[22rem] w-full max-w-sm place-self-stretch border-4 border-[#fff3c7] bg-[#240B36] lg:h-full lg:min-h-0 lg:max-w-none"
+          >
+            <Image
+              src={nextImage}
+              alt={aboutPage?.nextImage?.alt || "A colorful table of Asian dishes"}
+              fill
+              sizes="(min-width: 1024px) 30vw, 90vw"
+              className="object-cover"
+            />
+          </div>
           <div>
             <p className="text-sm font-medium uppercase leading-[0.9] text-[#ffd447]">
               {nextEyebrow}
@@ -289,15 +300,6 @@ export default async function AboutPage({
                 {nextCtaLabel}
               </Link>
             ) : null}
-          </div>
-          <div className="relative min-h-[18rem] border-4 border-[#fff3c7] bg-[#ffd447] sm:min-h-[24rem]">
-            <Image
-              src={nextImage}
-              alt={aboutPage?.nextImage?.alt || "A colorful table of Asian dishes"}
-              fill
-              sizes="(min-width: 1024px) 36vw, 90vw"
-              className="object-cover"
-            />
           </div>
         </div>
       </section>

@@ -91,7 +91,14 @@ type Recipe = {
     _key: string;
     image?: {
       alt?: string;
-      asset?: unknown;
+      asset?: {
+        metadata?: {
+          dimensions?: {
+            width?: number;
+            height?: number;
+          };
+        };
+      };
     };
     title?: LocalizedValue<string>;
     body?: LocalizedValue<PortableBlock[]>;
@@ -121,7 +128,18 @@ const recipeQuery = `*[_type == "recipe" && (
   methodSteps,
   tipsAndNotes,
   lifeStory,
-  guidanceCards,
+  guidanceCards[]{
+    ...,
+    image{
+      ...,
+      asset->{
+        ...,
+        metadata{
+          dimensions
+        }
+      }
+    }
+  },
   tiktokUrl
 }`;
 
@@ -185,17 +203,25 @@ function normalizeRecipe(recipe: Recipe, locale: Locale) {
     }))
     .filter((group) => group.title && group.ingredients.length);
   const guidanceCards = recipe.guidanceCards
-    ?.map((card) => ({
-      _key: card._key,
-      title: resolveLocalizedString(card.title, locale),
-      body: resolveLocalized<PortableBlock[]>(card.body, locale, []),
-      image: card.image?.asset
-        ? {
-            src: urlFor(card.image).width(900).height(675).fit("crop").url(),
-            alt: card.image.alt || resolveLocalizedString(card.title, locale),
-          }
-        : null,
-    }))
+    ?.map((card) => {
+      const dimensions = card.image?.asset?.metadata?.dimensions;
+      const imageWidth = dimensions?.width || 900;
+      const imageHeight = dimensions?.height || 1200;
+
+      return {
+        _key: card._key,
+        title: resolveLocalizedString(card.title, locale),
+        body: resolveLocalized<PortableBlock[]>(card.body, locale, []),
+        image: card.image?.asset
+          ? {
+              src: urlFor(card.image).width(900).fit("max").url(),
+              alt: card.image.alt || resolveLocalizedString(card.title, locale),
+              width: imageWidth,
+              height: imageHeight,
+            }
+          : null,
+      };
+    })
     .filter((card) => card.title && card.image);
 
   return {

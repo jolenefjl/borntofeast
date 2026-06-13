@@ -7,6 +7,7 @@ import {
   richTextToPlainText,
   type RichTextValue,
 } from "@/app/components/RichText";
+import {NewsletterSignupForm} from "@/app/components/NewsletterSignupForm";
 import {SiteHeader} from "@/app/components/SiteHeader";
 import {getSiteChrome} from "@/app/components/siteChrome";
 import {isLocale, localizedPath, type Locale} from "@/i18n/config";
@@ -679,23 +680,19 @@ export default async function Home({
               className="mt-4 max-w-2xl space-y-4 text-lg font-normal leading-[1.8rem]"
             />
           </div>
-          <form className="grid gap-3 sm:grid-cols-[1fr_auto]">
-            <label className="sr-only" htmlFor="email">
-              Email address
-            </label>
-            <input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              className="min-h-12 w-full border-2 border-[#240B36] bg-white px-4 text-base font-normal outline-none"
-            />
-            <button
-              type="submit"
-              className="min-h-12 border-2 border-[#240B36] bg-[#ffd447] px-5 text-sm font-medium uppercase leading-[0.9] shadow-[4px_4px_0_#240B36]"
-            >
-              {newsletterButtonLabel}
-            </button>
-          </form>
+          <NewsletterSignupForm
+            locale={locale}
+            buttonLabel={newsletterButtonLabel}
+            firstNameLabel={dictionary.homepage.newsletterFirstNameLabel}
+            firstNamePlaceholder={
+              dictionary.homepage.newsletterFirstNamePlaceholder
+            }
+            emailLabel={dictionary.homepage.newsletterEmailLabel}
+            emailPlaceholder={dictionary.homepage.newsletterEmailPlaceholder}
+            consentLabel={dictionary.homepage.newsletterConsent}
+            successMessage={dictionary.homepage.newsletterSuccess}
+            errorMessage={dictionary.homepage.newsletterError}
+          />
         </div>
       </section>
     </main>
